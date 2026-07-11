@@ -156,6 +156,44 @@
   .totals .ngneq{color:var(--gray); padding-top:7px; font-size:12px;}
   .totals .ngneq .v{font-weight:700; color:var(--ink);}
 
+  /* ---------- PIN overlay ---------- */
+  #pinOverlay{
+    position:fixed; inset:0; z-index:9999;
+    background:rgba(34,37,42,0.97);
+    display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  #pinCard{
+    background:#fff; border-radius:6px; padding:36px 40px;
+    max-width:380px; width:100%;
+    box-shadow:0 8px 40px rgba(0,0,0,.5); text-align:center;
+  }
+  .pin-brand{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:16px;}
+  .pin-brand img{width:44px;height:44px;}
+  .pin-brandname{font-weight:700;font-size:18px;letter-spacing:.09em;text-align:left;}
+  .pin-brandtag{font-size:10px;color:var(--gray);letter-spacing:.03em;text-align:left;margin-top:2px;}
+  .pin-rule{height:3px;margin:0 0 24px;background:linear-gradient(to right,var(--orange) 50%,var(--blue) 50%);}
+  .pin-title{font-size:17px;font-weight:700;letter-spacing:.08em;margin-bottom:8px;}
+  .pin-sub{font-size:12.5px;color:var(--gray);margin-bottom:28px;line-height:1.5;}
+  #pinDigits{display:flex;gap:12px;justify-content:center;margin-bottom:8px;}
+  .pinD{
+    width:56px;height:64px;font-size:26px;font-weight:700;
+    text-align:center;border:2px solid var(--line);border-radius:4px;
+    color:var(--ink);outline:none;background:var(--bg);
+    font-family:inherit;transition:border-color .15s;
+  }
+  .pinD:focus{border-color:var(--blue);background:#F3F9FF;}
+  .pinD.pinD-err{border-color:#C0392B;background:#FFF5F5;}
+  #pinErr{font-size:12px;color:#C0392B;min-height:20px;margin:10px 0 14px;font-weight:600;}
+  #pinBtn{
+    font:inherit;font-weight:700;font-size:13.5px;letter-spacing:.03em;
+    background:var(--ink);color:#fff;border:none;border-radius:4px;
+    padding:12px 0;cursor:pointer;width:100%;margin-bottom:18px;
+    transition:background .15s;
+  }
+  #pinBtn:hover{background:#000;}
+  #pinBtn:disabled{background:var(--gray);cursor:not-allowed;}
+  .pin-note{font-size:10.5px;color:var(--faint);line-height:1.5;}
+
   /* ---------- print ---------- */
   @page{size:A4; margin:0;}
   @media print{
@@ -167,6 +205,34 @@
 </style>
 </head>
 <body>
+
+<!-- ========== PIN GATE ========== -->
+<div id="pinOverlay">
+  <div id="pinCard">
+    <div class="pin-brand">
+      <img src="assets/tekktopia-logo.png" alt="Tekktopia logo">
+      <div>
+        <div class="pin-brandname">TEKKTOPIA LIMITED</div>
+        <div class="pin-brandtag">Information Technology Services</div>
+      </div>
+    </div>
+    <div class="pin-rule"></div>
+    <div class="pin-title">PROTECTED DOCUMENT</div>
+    <div class="pin-sub">Enter your 4-digit PIN to access this invoice.</div>
+    <div id="pinDigits">
+      <input class="pinD" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off">
+      <input class="pinD" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off">
+      <input class="pinD" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off">
+      <input class="pinD" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off">
+    </div>
+    <div id="pinErr"></div>
+    <button id="pinBtn">Access Invoice</button>
+    <div class="pin-note">Unauthorised access attempts are logged and reported to Tekktopia.</div>
+  </div>
+</div>
+
+<!-- ========== INVOICE CONTENT (hidden until PIN passed) ========== -->
+<div id="invoiceContent" style="display:none">
 
 <div class="toolbar">
   <div class="hint">
@@ -474,6 +540,148 @@
   });
 
   recalc();
+})();
+</script>
+
+</div><!-- /#invoiceContent -->
+
+<script>
+/*
+ * PIN GATE + ACCESS NOTIFICATIONS
+ *
+ * Email delivery uses formsubmit.co (free, no account needed).
+ * FIRST USE: The very first notification triggers an activation email to
+ * info@tekktopia.com — click the link in that email once to enable all
+ * future notifications. After that, emails arrive immediately.
+ */
+(function(){
+  'use strict';
+
+  var CORRECT_PIN   = '1156';
+  var MAX_ATTEMPTS  = 10;
+  var LOCK_MINUTES  = 5;
+  var NOTIFY_EMAIL  = 'info@tekktopia.com';
+
+  var failCount = 0;
+  var isLocked  = false;
+
+  var overlay = document.getElementById('pinOverlay');
+  var content = document.getElementById('invoiceContent');
+  var digits  = Array.prototype.slice.call(document.querySelectorAll('.pinD'));
+  var errEl   = document.getElementById('pinErr');
+  var btn     = document.getElementById('pinBtn');
+
+  digits[0].focus();
+
+  digits.forEach(function(d, i){
+    d.addEventListener('input', function(){
+      d.value = d.value.replace(/\D/g,'').slice(-1);
+      if(d.value && i < digits.length - 1) digits[i+1].focus();
+      if(i === digits.length - 1 && d.value) submitPin();
+    });
+    d.addEventListener('keydown', function(e){
+      if(e.key === 'Backspace' && !d.value && i > 0){ digits[i-1].value=''; digits[i-1].focus(); }
+      if(e.key === 'Enter') submitPin();
+      if(e.key === 'ArrowLeft'  && i > 0)               digits[i-1].focus();
+      if(e.key === 'ArrowRight' && i < digits.length-1) digits[i+1].focus();
+    });
+    d.addEventListener('paste', function(e){
+      e.preventDefault();
+      var raw = (e.clipboardData||window.clipboardData).getData('text').replace(/\D/g,'');
+      if(raw.length >= 4){
+        for(var j=0;j<4;j++) digits[j].value = raw[j]||'';
+        digits[3].focus();
+        submitPin();
+      }
+    });
+  });
+
+  btn.addEventListener('click', submitPin);
+
+  function getPin(){ return digits.map(function(d){ return d.value; }).join(''); }
+
+  function clearDigits(){
+    digits.forEach(function(d){ d.value=''; d.classList.remove('pinD-err'); });
+    digits[0].focus();
+  }
+
+  function showErr(msg){ errEl.textContent = msg; }
+
+  function submitPin(){
+    if(isLocked) return;
+    var pin = getPin();
+    if(pin.length < 4){ showErr('Please enter all 4 digits.'); return; }
+
+    if(pin === CORRECT_PIN){
+      notify(true, failCount);
+      overlay.style.display = 'none';
+      content.style.display = '';
+    } else {
+      failCount++;
+      notify(false, failCount);
+      digits.forEach(function(d){ d.classList.add('pinD-err'); });
+
+      if(failCount >= MAX_ATTEMPTS){
+        isLocked = true;
+        btn.disabled = true;
+        digits.forEach(function(d){ d.disabled = true; });
+        var mins = LOCK_MINUTES;
+        showErr('Too many attempts. Locked for ' + mins + ' min.');
+        var t = setInterval(function(){
+          mins--;
+          if(mins <= 0){
+            clearInterval(t);
+            isLocked = false; failCount = 0;
+            btn.disabled = false;
+            digits.forEach(function(d){ d.disabled = false; });
+            clearDigits(); showErr('');
+          } else {
+            showErr('Too many attempts. Locked for ' + mins + ' min.');
+          }
+        }, 60000);
+      } else {
+        var left = MAX_ATTEMPTS - failCount;
+        showErr('Incorrect PIN. ' + left + ' attempt' + (left===1?'':'s') + ' remaining.');
+        setTimeout(clearDigits, 900);
+      }
+    }
+  }
+
+  function notify(success, failsSoFar){
+    var now = new Date().toLocaleString('en-GB', {
+      timeZone:'Africa/Lagos', weekday:'long',
+      year:'numeric', month:'long', day:'numeric',
+      hour:'2-digit', minute:'2-digit', second:'2-digit'
+    });
+    var subject = success
+      ? 'INVOICE ACCESSED — TEK-LD-2026-007'
+      : 'FAILED PIN ATTEMPT #' + failsSoFar + ' — TEK-LD-2026-007';
+    var body = success
+      ? 'Invoice TEK-LD-2026-007 (Netcom Africa) was successfully accessed.\n\n'
+        + 'Time (WAT): ' + now + '\n'
+        + 'Failed attempts before success: ' + failsSoFar + '\n'
+        + 'Browser: ' + navigator.userAgent + '\n'
+        + 'Referrer: ' + (document.referrer || 'Direct')
+      : 'Failed PIN entry on Invoice TEK-LD-2026-007 (Netcom Africa).\n\n'
+        + 'Attempt: #' + failsSoFar + ' of ' + MAX_ATTEMPTS + '\n'
+        + 'Time (WAT): ' + now + '\n'
+        + 'Browser: ' + navigator.userAgent + '\n'
+        + 'Referrer: ' + (document.referrer || 'Direct');
+
+    fetch('https://formsubmit.co/ajax/' + NOTIFY_EMAIL, {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Accept':'application/json'},
+      body: JSON.stringify({
+        name: 'Tekktopia Invoice System',
+        email: 'noreply@tekktopia.com',
+        message: body,
+        _subject: subject,
+        _captcha: 'false',
+        _template: 'basic'
+      })
+    }).catch(function(){});
+  }
+
 })();
 </script>
 </body>
