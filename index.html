@@ -194,6 +194,68 @@
   #pinBtn:disabled{background:var(--gray);cursor:not-allowed;}
   .pin-note{font-size:10.5px;color:var(--faint);line-height:1.5;}
 
+  /* ---------- mobile ---------- */
+  @media screen and (max-width:680px){
+    body{font-size:13px;}
+
+    /* toolbar */
+    .toolbar{
+      flex-direction:column; align-items:stretch;
+      max-width:100%; margin:12px 12px 8px; gap:10px;
+    }
+    .toolbar .hint small{display:none;}
+    .tools{justify-content:space-between;}
+    .btn{font-size:14px; padding:11px 20px; text-align:center;}
+
+    /* page — fluid, no side shadow */
+    .page{
+      width:100%; min-height:unset;
+      margin:0 0 20px; padding:20px 16px 16px;
+      box-shadow:none; border-radius:0;
+    }
+
+    /* letterhead — stack brand above address */
+    .lh{flex-direction:column; gap:14px;}
+    .lh .co{text-align:left;}
+    .brand .name{font-size:18px;}
+
+    /* title bar — stack INVOICE heading above meta */
+    .titlebar{flex-direction:column; gap:14px;}
+    h1{font-size:22px;}
+    .meta .row{justify-content:flex-start;}
+    .meta .k{text-align:left; min-width:110px;}
+    .meta .v{text-align:left; min-width:unset;}
+
+    /* items table — horizontal scroll so nothing gets crushed */
+    table{display:block; overflow-x:auto; -webkit-overflow-scrolling:touch;}
+
+    /* delete button always visible on touch (no hover state on mobile) */
+    .del{visibility:visible; font-size:18px; padding:8px 6px;}
+
+    /* add-row button full width */
+    .addrow{width:100%; text-align:center; padding:10px 14px;}
+
+    /* words + totals — stack vertically */
+    .below{flex-direction:column; gap:16px;}
+    .words{max-width:100%;}
+    .totals{width:100%;}
+
+    /* naira box */
+    .naira{font-size:12px;}
+
+    /* payment info lines wrap better */
+    .payinfo div{font-size:13px; line-height:1.6;}
+
+    /* PIN overlay */
+    #pinOverlay{padding:16px;}
+    #pinCard{padding:28px 20px;}
+    #pinDigits{gap:10px;}
+    .pinD{width:58px; height:66px; font-size:26px;}
+  }
+
+  /* delete always visible on touch devices regardless of screen size */
+  @media(hover:none){.del{visibility:visible;}}
+
   /* ---------- print ---------- */
   @page{size:A4; margin:0;}
   @media print{
