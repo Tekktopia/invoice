@@ -549,18 +549,26 @@
 /*
  * PIN GATE + ACCESS NOTIFICATIONS
  *
- * Email delivery uses formsubmit.co (free, no account needed).
+ * PIN rotates every 24 h at 12:00 WAT (11:00 UTC).
+ * A GitHub Actions cron job emails the new code to billing@tekktopia.com
+ * each day at exactly that time — see .github/workflows/daily-invoice-pin.yml.
+ *
+ * Access-attempt notifications use formsubmit.co (free, no account needed).
  * FIRST USE: The very first notification triggers an activation email to
- * info@tekktopia.com — click the link in that email once to enable all
- * future notifications. After that, emails arrive immediately.
+ * info@tekktopia.com — click the link in that email once, then notifications
+ * flow automatically.
+ *
+ * IMPORTANT: The value of SECRET below must exactly match the GitHub Actions
+ * secret named INVOICE_SECRET in your repository settings.
  */
 (function(){
   'use strict';
 
-  var CORRECT_PIN   = '1156';
+  // Must match the INVOICE_SECRET value in GitHub → Settings → Secrets
+  var SECRET        = 'a7f3c91e5b204d68a1f0c3e29b7d4582';
   var MAX_ATTEMPTS  = 10;
   var LOCK_MINUTES  = 5;
-  var NOTIFY_EMAIL  = 'info@tekktopia.com';
+  var NOTIFY_EMAIL  = 'billing@tekktopia.com';
 
   var failCount = 0;
   var isLocked  = false;
@@ -607,44 +615,73 @@
 
   function showErr(msg){ errEl.textContent = msg; }
 
+  // Derives the current valid 4-digit PIN using HMAC-SHA256 over today's 24h window.
+  // Window boundary: 11:00 UTC = 12:00 WAT.  Identical logic runs in the GitHub Action.
+  function getValidPin(){
+    var WINDOW_MS  = 24 * 60 * 60 * 1000;
+    var OFFSET_MS  = 11 * 60 * 60 * 1000; // shift so window starts at 11 UTC
+    var windowNum  = Math.floor((Date.now() - OFFSET_MS) / WINDOW_MS);
+    var enc        = new TextEncoder();
+    return crypto.subtle.importKey(
+      'raw', enc.encode(SECRET),
+      {name:'HMAC', hash:'SHA-256'},
+      false, ['sign']
+    ).then(function(key){
+      return crypto.subtle.sign('HMAC', key, enc.encode(String(windowNum)));
+    }).then(function(sig){
+      var a = new Uint8Array(sig);
+      var n = ((a[0]<<24)|(a[1]<<16)|(a[2]<<8)|a[3]) >>> 0;
+      var s = String(n % 10000);
+      while(s.length < 4) s = '0' + s;
+      return s;
+    });
+  }
+
   function submitPin(){
     if(isLocked) return;
     var pin = getPin();
     if(pin.length < 4){ showErr('Please enter all 4 digits.'); return; }
 
-    if(pin === CORRECT_PIN){
-      notify(true, failCount);
-      overlay.style.display = 'none';
-      content.style.display = '';
-    } else {
-      failCount++;
-      notify(false, failCount);
-      digits.forEach(function(d){ d.classList.add('pinD-err'); });
-
-      if(failCount >= MAX_ATTEMPTS){
-        isLocked = true;
-        btn.disabled = true;
-        digits.forEach(function(d){ d.disabled = true; });
-        var mins = LOCK_MINUTES;
-        showErr('Too many attempts. Locked for ' + mins + ' min.');
-        var t = setInterval(function(){
-          mins--;
-          if(mins <= 0){
-            clearInterval(t);
-            isLocked = false; failCount = 0;
-            btn.disabled = false;
-            digits.forEach(function(d){ d.disabled = false; });
-            clearDigits(); showErr('');
-          } else {
-            showErr('Too many attempts. Locked for ' + mins + ' min.');
-          }
-        }, 60000);
+    btn.disabled = true;
+    getValidPin().then(function(validPin){
+      btn.disabled = false;
+      if(pin === validPin){
+        notify(true, failCount);
+        overlay.style.display = 'none';
+        content.style.display = '';
       } else {
-        var left = MAX_ATTEMPTS - failCount;
-        showErr('Incorrect PIN. ' + left + ' attempt' + (left===1?'':'s') + ' remaining.');
-        setTimeout(clearDigits, 900);
+        failCount++;
+        notify(false, failCount);
+        digits.forEach(function(d){ d.classList.add('pinD-err'); });
+
+        if(failCount >= MAX_ATTEMPTS){
+          isLocked = true;
+          btn.disabled = true;
+          digits.forEach(function(d){ d.disabled = true; });
+          var mins = LOCK_MINUTES;
+          showErr('Too many attempts. Locked for ' + mins + ' min.');
+          var t = setInterval(function(){
+            mins--;
+            if(mins <= 0){
+              clearInterval(t);
+              isLocked = false; failCount = 0;
+              btn.disabled = false;
+              digits.forEach(function(d){ d.disabled = false; });
+              clearDigits(); showErr('');
+            } else {
+              showErr('Too many attempts. Locked for ' + mins + ' min.');
+            }
+          }, 60000);
+        } else {
+          var left = MAX_ATTEMPTS - failCount;
+          showErr('Incorrect PIN. ' + left + ' attempt' + (left===1?'':'s') + ' remaining.');
+          setTimeout(clearDigits, 900);
+        }
       }
-    }
+    }).catch(function(){
+      btn.disabled = false;
+      showErr('Security error — please refresh and try again.');
+    });
   }
 
   function notify(success, failsSoFar){
