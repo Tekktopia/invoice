@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Invoice TEK-LD-2026-007 - Tekktopia Limited</title>
+<style>
+  :root{
+    --ink:#22252A; --gray:#5C6570; --faint:#9AA1A9;
+    --line:#C9CED4; --line2:#3A3F45;
+    --blue:#1B75BC; --orange:#F5921E; --bg:#F4F5F7;
+  }
+  *{box-sizing:border-box; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+  html,body{margin:0; padding:0;}
+  body{
+    font-family:Calibri,Carlito,"Segoe UI",Arial,sans-serif;
+    background:#E8EAED; color:var(--ink);
+    font-size:12px; line-height:1.35;
+  }
+
+  /* ---------- toolbar (screen only) ---------- */
+  .toolbar{
+    max-width:210mm; margin:18px auto 12px; padding:0 4px;
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+  }
+  .toolbar .hint{color:var(--gray); font-size:12.5px;}
+  .toolbar .hint small{display:block; color:var(--faint); margin-top:2px;}
+  .btn{
+    font:inherit; font-weight:700; font-size:13px; letter-spacing:.02em;
+    background:var(--ink); color:#fff; border:none; border-radius:3px;
+    padding:9px 18px; cursor:pointer; white-space:nowrap;
+  }
+  .btn:hover{background:#000;}
+  .btn:focus-visible{outline:2px solid var(--blue); outline-offset:2px;}
+
+  /* ---------- page ---------- */
+  .page{
+    width:210mm; min-height:297mm; margin:0 auto 32px;
+    background:#fff; box-shadow:0 2px 14px rgba(0,0,0,.14);
+    padding:16mm 18mm 14mm; position:relative;
+    display:flex; flex-direction:column;
+  }
+
+  /* ---------- editing affordances ---------- */
+  [contenteditable]{border-radius:2px; outline:none; min-width:8px;}
+  [contenteditable]:hover{box-shadow:0 0 0 1px var(--line);}
+  [contenteditable]:focus{box-shadow:0 0 0 1.5px var(--blue); background:#F3F9FF;}
+
+  /* ---------- letterhead ---------- */
+  .lh{display:flex; justify-content:space-between; align-items:flex-start;}
+  .brand{display:flex; align-items:flex-start; gap:12px;}
+  .brand img{width:50px; height:50px; display:block;}
+  .brand .name{font-weight:700; font-size:21px; letter-spacing:.09em; padding-top:3px;}
+  .brand .tag{font-size:10.5px; color:var(--gray); letter-spacing:.03em; margin-top:2px;}
+  .lh .co{ text-align:right; font-size:10.5px; color:var(--gray); line-height:1.5;}
+  .rule{border-top:1.2px solid var(--line2); margin-top:14px; position:relative;}
+  .rule::before{
+    content:""; position:absolute; left:0; top:-2px; height:3px; width:42px;
+    background:linear-gradient(to right, var(--orange) 0 21px, var(--blue) 21px 42px);
+  }
+
+  /* ---------- title + meta ---------- */
+  .titlebar{display:flex; justify-content:space-between; align-items:flex-start; margin-top:22px;}
+  h1{font-size:26px; margin:0; letter-spacing:.14em; font-weight:700;}
+  .meta{font-size:11.5px;}
+  .meta .row{display:flex; justify-content:flex-end; gap:14px; margin-bottom:3.5px;}
+  .meta .k{color:var(--gray); text-align:right;}
+  .meta .v{min-width:104px; text-align:right;}
+  .meta .row:first-child .v{font-weight:700;}
+
+  /* ---------- section labels ---------- */
+  .lbl{font-size:10px; font-weight:700; letter-spacing:.14em; color:var(--faint); margin-bottom:7px;}
+
+  /* ---------- bill to ---------- */
+  .billto{margin-top:20px;}
+  .billto .n{font-weight:700; font-size:14px; margin-bottom:2px;}
+  .billto div{margin-bottom:1.5px;}
+  .billto .sub{color:var(--gray);}
+
+  /* ---------- items table ---------- */
+  table{width:100%; border-collapse:collapse; margin-top:22px; font-size:12.5px;}
+  thead th{
+    font-size:10px; letter-spacing:.09em; text-align:left; font-weight:700;
+    border-top:1.4px solid var(--line2); border-bottom:1px solid var(--line2);
+    padding:7px 6px;
+  }
+  tbody td{padding:9px 6px; border-bottom:.7px solid var(--line); vertical-align:top;}
+  .c-sn{width:34px;}
+  .c-qty{width:56px;}
+  .c-unit{width:118px;}
+  .c-amt{width:126px;}
+  .c-ctl{width:26px; border:none !important; padding:0 !important;}
+  th.num, td.num{text-align:right;}
+  td.sn{color:var(--ink);}
+  .del{
+    font:inherit; border:none; background:none; color:var(--faint);
+    font-size:15px; line-height:1; cursor:pointer; padding:6px 4px; visibility:hidden;
+  }
+  tbody tr:hover .del{visibility:visible;}
+  .del:hover{color:#C0392B;}
+  .del:focus-visible{visibility:visible; outline:1.5px solid var(--blue); border-radius:2px;}
+  .addrow{
+    margin-top:10px; font:inherit; font-size:12px; color:var(--gray);
+    background:none; border:1px dashed var(--line); border-radius:3px;
+    padding:6px 14px; cursor:pointer;
+  }
+  .addrow:hover{color:var(--ink); border-color:var(--gray);}
+  .addrow:focus-visible{outline:1.5px solid var(--blue);}
+
+  /* ---------- words + totals ---------- */
+  .below{display:flex; justify-content:space-between; gap:24px; margin-top:16px;}
+  .words{max-width:88mm; font-size:11.5px;}
+  .words .lb{font-weight:700; color:var(--gray); margin-bottom:3px;}
+  .words .tx{font-style:italic;}
+  .totals{width:62mm; font-size:12.5px;}
+  .totals .row{display:flex; justify-content:space-between; padding:3.5px 0;}
+  .totals .row .k{color:var(--gray);}
+  .totals .grand{
+    border-top:1px solid var(--line2); border-bottom:1px solid var(--line2);
+    margin-top:5px; padding:6px 0; font-weight:700;
+  }
+  .totals .grand .k{color:var(--ink); letter-spacing:.03em;}
+  .totals .grand .v{font-size:14.5px;}
+
+  /* ---------- naira box ---------- */
+  .naira{
+    margin-top:22px; background:var(--bg); border:.8px solid var(--line);
+    border-radius:2px; padding:11px 15px; font-size:11.5px;
+  }
+  .naira .lbl{margin-bottom:5px;}
+  .naira .l2{color:var(--gray); margin-top:3px;}
+
+  /* ---------- payment info + account manager ---------- */
+  .payinfo{margin-top:20px;}
+  .payinfo div{margin-bottom:4px; font-size:12px;}
+  .am{margin-top:18px;}
+  .am .n{font-weight:700; font-size:13px; margin-bottom:2px;}
+  .am .c{color:var(--gray); font-size:12px;}
+
+  /* ---------- footer ---------- */
+  .foot{
+    margin-top:auto; padding-top:10px; border-top:.7px solid var(--line);
+    text-align:center; font-size:10.5px; color:var(--gray);
+  }
+  .foot .thanks{font-style:italic; margin-bottom:3px;}
+  .foot .reg{color:var(--faint); font-size:9.8px;}
+
+  /* ---------- currency switch ---------- */
+  .tools{display:flex; align-items:center; gap:10px;}
+  .seg{display:flex; border:1px solid var(--line2); border-radius:3px; overflow:hidden; background:#fff;}
+  .segbtn{font:inherit; font-size:12.5px; font-weight:700; padding:8px 14px; border:none;
+    background:transparent; color:var(--gray); cursor:pointer;}
+  .segbtn.active{background:var(--ink); color:#fff;}
+  .segbtn:not(.active):hover{color:var(--ink);}
+  .segbtn:focus-visible{outline:2px solid var(--blue); outline-offset:-2px;}
+  .totals .ngneq{color:var(--gray); padding-top:7px; font-size:12px;}
+  .totals .ngneq .v{font-weight:700; color:var(--ink);}
+
+  /* ---------- print ---------- */
+  @page{size:A4; margin:0;}
+  @media print{
+    body{background:#fff;}
+    .toolbar,.addrow,.c-ctl,.del{display:none !important;}
+    .page{box-shadow:none; margin:0; width:210mm; min-height:297mm;}
+    [contenteditable]:hover,[contenteditable]:focus{box-shadow:none; background:transparent;}
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="hint">
+    Click any text to edit &mdash; totals, the amount in words and the naira figure update automatically.
+    <small>Switch USD / NGN to issue a naira invoice (prices convert at the exchange rate). Download PDF opens your browser&rsquo;s print dialog: choose &ldquo;Save as PDF&rdquo;.</small>
+  </div>
+  <div class="tools">
+    <div class="seg" role="group" aria-label="Invoice currency">
+      <button type="button" class="segbtn active" id="modeUSD" aria-pressed="true">USD&nbsp;$</button>
+      <button type="button" class="segbtn" id="modeNGN" aria-pressed="false">NGN&nbsp;&#8358;</button>
+    </div>
+    <button class="btn" onclick="window.print()">Download PDF</button>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- letterhead -->
+  <div class="lh">
+    <div class="brand">
+      <img src="data:image/png;base64,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" alt="Tekktopia logo">
+      <div>
+        <div class="name" contenteditable="true">TEKKTOPIA LIMITED</div>
+        <div class="tag" contenteditable="true">Information Technology Services</div>
+      </div>
+    </div>
+    <div class="co">
+      <div contenteditable="true">43 Baale Street, Igbo-Efon, Lekki, Lagos, Nigeria</div>
+      <div contenteditable="true">+234 815 433 2992&nbsp;&nbsp;|&nbsp;&nbsp;billing@tekktopia.com</div>
+      <div contenteditable="true">www.tekktopia.com</div>
+      <div contenteditable="true">RC 7466800&nbsp;&nbsp;|&nbsp;&nbsp;TIN 31661991-0001</div>
+    </div>
+  </div>
+  <div class="rule"></div>
+
+  <!-- title + meta -->
+  <div class="titlebar">
+    <h1>INVOICE</h1>
+    <div class="meta">
+      <div class="row"><span class="k">Invoice No.</span><span class="v" id="invNo" contenteditable="true">TEK/LD/2026/007</span></div>
+      <div class="row"><span class="k">Invoice Date</span><span class="v" contenteditable="true">21 July 2026</span></div>
+      <div class="row"><span class="k">Payment Terms</span><span class="v" contenteditable="true">Net 10 days</span></div>
+      <div class="row"><span class="k">Due Date</span><span class="v" contenteditable="true">31 July 2026</span></div>
+      <div class="row"><span class="k">Currency</span><span class="v" id="curLabel" contenteditable="true">US Dollar (USD)</span></div>
+    </div>
+  </div>
+
+  <!-- bill to -->
+  <div class="billto">
+    <div class="lbl">BILL TO</div>
+    <div class="n" contenteditable="true">Netcom Africa Limited</div>
+    <div contenteditable="true">Attn: Finance Department</div>
+    <div class="sub" contenteditable="true">6th Floor, South Atlantic Petroleum Towers,</div>
+    <div class="sub" contenteditable="true">1 Adeola Odeku Street, Victoria Island, Lagos, Nigeria</div>
+    <div class="sub" contenteditable="true">solutions@netcomafrica.com</div>
+  </div>
+
+  <!-- items -->
+  <table>
+    <thead>
+      <tr>
+        <th class="c-sn">S/N</th>
+        <th>DESCRIPTION</th>
+        <th class="c-qty num">QTY</th>
+        <th class="c-unit num" id="unitHead">UNIT PRICE (USD)</th>
+        <th class="c-amt num" id="amtHead">AMOUNT (USD)</th>
+        <th class="c-ctl"></th>
+      </tr>
+    </thead>
+    <tbody id="itemsBody">
+      <tr>
+        <td class="sn">1</td>
+        <td class="desc" contenteditable="true">Apex POB Software Implementation</td>
+        <td class="num qty" contenteditable="true">1</td>
+        <td class="num unit" contenteditable="true">6,200.00</td>
+        <td class="num amt">6,200.00</td>
+        <td class="c-ctl"><button class="del" title="Remove this line" aria-label="Remove line">&times;</button></td>
+      </tr>
+      <tr>
+        <td class="sn">2</td>
+        <td class="desc" contenteditable="true">ZKTeco Musterguard Integration &ndash; API Connector Licence</td>
+        <td class="num qty" contenteditable="true">1</td>
+        <td class="num unit" contenteditable="true">1,250.00</td>
+        <td class="num amt">1,250.00</td>
+        <td class="c-ctl"><button class="del" title="Remove this line" aria-label="Remove line">&times;</button></td>
+      </tr>
+      <tr>
+        <td class="sn">3</td>
+        <td class="desc" contenteditable="true">Support &amp; Maintenance (MRC)</td>
+        <td class="num qty" contenteditable="true">1</td>
+        <td class="num unit" contenteditable="true">180.00</td>
+        <td class="num amt">180.00</td>
+        <td class="c-ctl"><button class="del" title="Remove this line" aria-label="Remove line">&times;</button></td>
+      </tr>
+    </tbody>
+  </table>
+  <button class="addrow" id="addRow">+ Add line item</button>
+
+  <!-- words + totals -->
+  <div class="below">
+    <div class="words">
+      <div class="lb">Amount in words:</div>
+      <div class="tx" id="words">Eight Thousand, Two Hundred and Two US Dollars, Twenty-Five Cents Only.</div>
+    </div>
+    <div class="totals">
+      <div class="row"><span class="k">Subtotal</span><span class="v" id="subtotal">7,630.00</span></div>
+      <div class="row"><span class="k">VAT (<span id="vatPct" contenteditable="true">7.5</span>%)</span><span class="v" id="vatAmt">572.25</span></div>
+      <div class="row grand"><span class="k" id="grandLbl">TOTAL DUE (USD)</span><span class="v"><span id="curSym">$</span><span id="totalDue">8,202.25</span></span></div>
+      <div class="row ngneq" id="ngnEqRow"><span class="k">Naira equivalent</span><span class="v">NGN <span id="ngnEq">11,540,565.75</span></span></div>
+    </div>
+  </div>
+
+  <!-- naira reference -->
+  <div class="naira" id="nairaBox">
+    <div class="lbl">NAIRA PAYMENT OPTION</div>
+    <div>Exchange rate reference:&nbsp; US$1.00 = NGN <span id="fxRate" contenteditable="true">1,407.00</span>&nbsp; (<span contenteditable="true">indicative market rate as at 21 July 2026</span>).</div>
+    <div class="l2">Naira equivalent of total due:&nbsp; NGN <span id="ngnTotal">11,540,565.75</span>.&nbsp; Naira payments should apply the prevailing rate on the payment date.</div>
+  </div>
+
+  <!-- payment information -->
+  <div class="payinfo">
+    <div class="lbl">PAYMENT INFORMATION</div>
+    <div contenteditable="true">Payment is due within 10 days of the invoice date, i.e. on or before 31 July 2026.</div>
+    <div contenteditable="true">Kindly send proof of payment to billing@tekktopia.com, quoting invoice number <span class="invno-ref">TEK/LD/2026/007</span>.</div>
+    <div contenteditable="true">Please direct all enquiries regarding this invoice to your account manager or billing@tekktopia.com.</div>
+  </div>
+
+  <!-- account manager -->
+  <div class="am">
+    <div class="lbl">ACCOUNT MANAGER</div>
+    <div class="n" contenteditable="true">Boluwatife Oni</div>
+    <div class="c" contenteditable="true">boluwatifeo@tekktopia.com&nbsp;&nbsp;|&nbsp;&nbsp;+234 903 659 9775</div>
+  </div>
+
+  <!-- footer -->
+  <div class="foot">
+    <div class="thanks" contenteditable="true">Thank you for your business.</div>
+    <div class="reg" contenteditable="true">Tekktopia Limited&nbsp; |&nbsp; RC 7466800&nbsp; |&nbsp; TIN 31661991-0001&nbsp; |&nbsp; www.tekktopia.com</div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var body = document.getElementById('itemsBody');
+  var mode = 'USD';
+
+  function parseNum(t){
+    var v = parseFloat(String(t).replace(/[^0-9.\-]/g,''));
+    return isNaN(v) ? 0 : v;
+  }
+  function fmt(v){
+    return v.toLocaleString('en-US',{minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+  function round2(v){ return Math.round(v*100)/100; }
+
+  /* ---- number to words ---- */
+  var ONES=['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve',
+    'Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
+  var TENS=['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+  function three(n){
+    var s='', h=Math.floor(n/100), r=n%100;
+    if(h) s+=ONES[h]+' Hundred';
+    if(r){
+      s+= h ? ' and ' : '';
+      s+= r<20 ? ONES[r] : TENS[Math.floor(r/10)] + (r%10 ? '-'+ONES[r%10] : '');
+    }
+    return s;
+  }
+  function intWords(n){
+    if(n===0) return 'Zero';
+    var groups=[[1e9,'Billion'],[1e6,'Million'],[1e3,'Thousand'],[1,'']], parts=[], q;
+    for(var i=0;i<groups.length;i++){
+      q=Math.floor(n/groups[i][0]);
+      if(q){ parts.push(three(q)+(groups[i][1]?' '+groups[i][1]:'')); n%=groups[i][0]; }
+    }
+    return parts.join(', ');
+  }
+  function amountWords(total){
+    var u = mode==='USD'
+      ? {one:'US Dollar', many:'US Dollars', subOne:'Cent', subMany:'Cents'}
+      : {one:'Naira',     many:'Naira',      subOne:'Kobo', subMany:'Kobo'};
+    var d=Math.floor(total), c=Math.round((total-d)*100);
+    if(c===100){ d++; c=0; }
+    var s=intWords(d)+' '+(d===1?u.one:u.many);
+    if(c) s+=', '+intWords(c)+' '+(c===1?u.subOne:u.subMany);
+    return s+' Only.';
+  }
+
+  /* ---- recalculation ---- */
+  function recalc(){
+    var rows=body.querySelectorAll('tr'), subtotal=0;
+    rows.forEach(function(tr,i){
+      tr.querySelector('.sn').textContent = i+1;
+      var q=parseNum(tr.querySelector('.qty').textContent);
+      var u=parseNum(tr.querySelector('.unit').textContent);
+      var a=round2(q*u);
+      tr.querySelector('.amt').textContent = fmt(a);
+      subtotal+=a;
+    });
+    subtotal=round2(subtotal);
+    var pct=parseNum(document.getElementById('vatPct').textContent);
+    var vat=round2(subtotal*pct/100);
+    var total=round2(subtotal+vat);
+    document.getElementById('subtotal').textContent = fmt(subtotal);
+    document.getElementById('vatAmt').textContent = fmt(vat);
+    document.getElementById('totalDue').textContent = fmt(total);
+    document.getElementById('words').textContent = amountWords(total);
+    var rate=parseNum(document.getElementById('fxRate').textContent);
+    var ngn=fmt(round2(total*rate));
+    document.getElementById('ngnTotal').textContent = ngn;
+    document.getElementById('ngnEq').textContent = ngn;
+  }
+
+  /* ---- currency mode ---- */
+  function setMode(m){
+    if(m===mode) return;
+    var rate=parseNum(document.getElementById('fxRate').textContent);
+    if(rate>0){
+      body.querySelectorAll('.unit').forEach(function(cell){
+        var u=parseNum(cell.textContent);
+        cell.textContent = fmt(round2(m==='NGN' ? u*rate : u/rate));
+      });
+    }
+    mode=m;
+    var usd = (m==='USD');
+    var bU=document.getElementById('modeUSD'), bN=document.getElementById('modeNGN');
+    bU.classList.toggle('active',usd);  bU.setAttribute('aria-pressed',usd);
+    bN.classList.toggle('active',!usd); bN.setAttribute('aria-pressed',!usd);
+    document.getElementById('curLabel').textContent = usd ? 'US Dollar (USD)' : 'Nigerian Naira (NGN)';
+    document.getElementById('unitHead').textContent = usd ? 'UNIT PRICE (USD)' : 'UNIT PRICE (NGN)';
+    document.getElementById('amtHead').textContent  = usd ? 'AMOUNT (USD)'     : 'AMOUNT (NGN)';
+    document.getElementById('grandLbl').textContent = usd ? 'TOTAL DUE (USD)'  : 'TOTAL DUE (NGN)';
+    document.getElementById('curSym').textContent   = usd ? '$' : '\u20A6';
+    document.getElementById('nairaBox').style.display = usd ? '' : 'none';
+    document.getElementById('ngnEqRow').style.display = usd ? '' : 'none';
+    recalc();
+  }
+  document.getElementById('modeUSD').addEventListener('click', function(){ setMode('USD'); });
+  document.getElementById('modeNGN').addEventListener('click', function(){ setMode('NGN'); });
+
+  /* ---- invoice number sync (top field drives every reference) ---- */
+  var invNo=document.getElementById('invNo');
+  invNo.addEventListener('input', function(){
+    var n=invNo.textContent.trim();
+    document.querySelectorAll('.invno-ref').forEach(function(s){ s.textContent=n; });
+  });
+
+  /* ---- add / remove rows ---- */
+  document.getElementById('addRow').addEventListener('click', function(){
+    var tr=document.createElement('tr');
+    tr.innerHTML =
+      '<td class="sn"></td>'+
+      '<td class="desc" contenteditable="true">New line item</td>'+
+      '<td class="num qty" contenteditable="true">1</td>'+
+      '<td class="num unit" contenteditable="true">0.00</td>'+
+      '<td class="num amt">0.00</td>'+
+      '<td class="c-ctl"><button class="del" title="Remove this line" aria-label="Remove line">&times;</button></td>';
+    body.appendChild(tr);
+    recalc();
+    var d=tr.querySelector('.desc');
+    d.focus();
+    document.getSelection().selectAllChildren(d);
+  });
+
+  body.addEventListener('click', function(e){
+    if(e.target.classList.contains('del')){
+      if(body.querySelectorAll('tr').length>1){
+        e.target.closest('tr').remove();
+        recalc();
+      }
+    }
+  });
+
+  /* ---- live updates + tidy formatting ---- */
+  document.addEventListener('input', function(e){
+    if(e.target.closest('#itemsBody') || e.target.id==='vatPct' || e.target.id==='fxRate') recalc();
+  });
+  document.addEventListener('focusout', function(e){
+    if(e.target.classList && (e.target.classList.contains('unit') || e.target.id==='fxRate')){
+      e.target.textContent = fmt(parseNum(e.target.textContent));
+      recalc();
+    }
+  });
+
+  /* keep single-line fields single-line; paste as plain text */
+  document.addEventListener('keydown', function(e){
+    if(e.key==='Enter' && e.target.isContentEditable && !e.target.classList.contains('desc')){
+      e.preventDefault(); e.target.blur();
+    }
+  });
+  document.addEventListener('paste', function(e){
+    if(e.target.isContentEditable){
+      e.preventDefault();
+      var t=(e.clipboardData||window.clipboardData).getData('text/plain');
+      document.execCommand('insertText', false, t);
+    }
+  });
+
+  /* saved-PDF filename follows the invoice number */
+  window.addEventListener('beforeprint', function(){
+    var n=document.getElementById('invNo').textContent.trim().replace(/[\/\s]+/g,'-');
+    document.title='Invoice '+n+' - Tekktopia Limited';
+  });
+
+  recalc();
+})();
+</script>
+</body>
+</html>
