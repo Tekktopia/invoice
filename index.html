@@ -130,6 +130,24 @@
   .naira .lbl{margin-bottom:5px;}
   .naira .l2{color:var(--gray); margin-top:3px;}
 
+  /* ---------- bank details ---------- */
+  .bankdetails{
+    margin-top:20px; background:var(--bg); border:.8px solid var(--line);
+    border-radius:2px; padding:11px 15px; font-size:12px;
+  }
+  .bankdetails .lbl{margin-bottom:8px;}
+  .bankdetails table{
+    width:auto; border-collapse:collapse; margin-top:0; font-size:12px;
+  }
+  .bankdetails td{
+    padding:2.5px 0; border:none; vertical-align:top; font-size:12px;
+  }
+  .bankdetails td:first-child{
+    color:var(--gray); padding-right:20px; white-space:nowrap;
+  }
+  .bankdetails td:last-child{font-weight:700; color:var(--ink); letter-spacing:.01em;}
+  .bankdetails .acct-num{font-size:14px; letter-spacing:.08em;}
+
   /* ---------- payment info + account manager ---------- */
   .payinfo{margin-top:20px;}
   .payinfo div{margin-bottom:4px; font-size:12px;}
@@ -412,6 +430,25 @@
     <div class="lbl">NAIRA PAYMENT OPTION</div>
     <div>Exchange rate reference:&nbsp; US$1.00 = NGN <span id="fxRate" contenteditable="true">1,407.00</span>&nbsp; (<span contenteditable="true">indicative market rate as at 21 July 2026</span>).</div>
     <div class="l2">Naira equivalent of total due:&nbsp; NGN <span id="ngnTotal">11,540,565.75</span>.&nbsp; Naira payments should apply the prevailing rate on the payment date.</div>
+  </div>
+
+  <!-- bank details -->
+  <div class="bankdetails">
+    <div class="lbl">BANK DETAILS</div>
+    <table>
+      <tr>
+        <td>Bank Name</td>
+        <td contenteditable="true">Globus Bank</td>
+      </tr>
+      <tr>
+        <td>Account Name</td>
+        <td contenteditable="true">Tekktopia Limited</td>
+      </tr>
+      <tr>
+        <td>Account Number</td>
+        <td class="acct-num" contenteditable="true">1000355310</td>
+      </tr>
+    </table>
   </div>
 
   <!-- payment information -->
