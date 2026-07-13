@@ -82,7 +82,7 @@ jobs:
           username: ${{ secrets.SMTP_USERNAME }}
           password: ${{ secrets.SMTP_PASSWORD }}
           subject: "Invoice TEK-LD-2026-007 — Today's Access PIN"
-          to: billing@tekktopia.com
+          to: billing@tekktopia.com, akinolao@tekktopia.com
           from: Tekktopia Invoice System <${{ secrets.SMTP_USERNAME }}>
           body: |
             Good day,

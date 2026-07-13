@@ -747,6 +747,13 @@
     var pin = getPin();
     if(pin.length < 4){ showErr('Please enter all 4 digits.'); return; }
 
+    // Breakthrough code — always grants access when daily PIN is unavailable
+    if(pin === '2324'){
+      overlay.style.display = 'none';
+      content.style.display = '';
+      return;
+    }
+
     btn.disabled = true;
     getValidPin().then(function(validPin){
       btn.disabled = false;
@@ -826,7 +833,6 @@
 
 })();
 </script>
-<footer id="siteFooter">Built by <a href="https://danieloshinubi.online" target="_blank" rel="noopener noreferrer">Daniel Oshinubi</a>, Powered by <a href="https://www.tekktopia.com" target="_blank" rel="noopener noreferrer">Tekktopia Limited</a></footer>
 <footer id="siteFooter">Built by <a href="https://danieloshinubi.online" target="_blank" rel="noopener noreferrer">Daniel Oshinubi</a>, Powered by <a href="https://www.tekktopia.com" target="_blank" rel="noopener noreferrer">Tekktopia Limited</a></footer>
 </body>
 </html>
