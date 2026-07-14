@@ -12,73 +12,53 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Compute today's PIN
+      - name: Compute PIN and write to step outputs
         id: pin
         env:
           INVOICE_SECRET: ${{ secrets.INVOICE_SECRET }}
-        run: |
-          node - <<'EOF'
-          const crypto = require('crypto');
-
-          // Must mirror the logic in index.html getValidPin()
-          const WINDOW_MS  = 24 * 60 * 60 * 1000;
-          const OFFSET_MS  = 11 * 60 * 60 * 1000; // 11 UTC = 12 WAT
-          const windowNum  = Math.floor((Date.now() - OFFSET_MS) / WINDOW_MS);
-
-          const hmac = crypto.createHmac('sha256', process.env.INVOICE_SECRET);
-          hmac.update(String(windowNum));
-          const sig  = hmac.digest();
-          const n    = sig.readUInt32BE(0);          // unsigned big-endian first 4 bytes
-          const code = String(n % 10000).padStart(4, '0');
-
-          // Work out validity window in WAT (UTC+1)
-          const windowStartUTC = (windowNum * WINDOW_MS) + OFFSET_MS;
-          const windowEndUTC   = windowStartUTC + WINDOW_MS;
-          const fmt = (ms) => new Date(ms).toLocaleString('en-GB', {
-            timeZone: 'Africa/Lagos', weekday: 'long',
-            year: 'numeric', month: 'long', day: 'numeric',
-            hour: '2-digit', minute: '2-digit'
-          });
-
-          console.log(`code=${code}`);
-          console.log(`valid_from=${fmt(windowStartUTC)}`);
-          console.log(`valid_until=${fmt(windowEndUTC)}`);
-          EOF
         shell: bash
-        # Capture node output into step outputs
-
-      - name: Parse PIN outputs
-        id: parsed
-        env:
-          INVOICE_SECRET: ${{ secrets.INVOICE_SECRET }}
         run: |
-          node - <<'EOF' >> "$GITHUB_OUTPUT"
+          node - <<'NODEEOF' >> "$GITHUB_OUTPUT"
           const crypto = require('crypto');
           const WINDOW_MS = 24*60*60*1000, OFFSET_MS = 11*60*60*1000;
           const windowNum = Math.floor((Date.now()-OFFSET_MS)/WINDOW_MS);
           const hmac = crypto.createHmac('sha256', process.env.INVOICE_SECRET);
           hmac.update(String(windowNum));
           const sig = hmac.digest();
-          const n   = sig.readUInt32BE(0);
-          const code = String(n%10000).padStart(4,'0');
-          const startUTC = windowNum*WINDOW_MS+OFFSET_MS;
-          const endUTC   = startUTC+WINDOW_MS;
-          const fmt = (ms) => new Date(ms).toLocaleString('en-GB',{
-            timeZone:'Africa/Lagos',weekday:'long',year:'numeric',
-            month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'
+          const n = sig.readUInt32BE(0);
+          const code = String(n % 10000).padStart(4, '0');
+          const startUTC = windowNum*WINDOW_MS + OFFSET_MS;
+          const endUTC   = startUTC + WINDOW_MS;
+          const fmt = ms => new Date(ms).toLocaleString('en-GB', {
+            timeZone:'Africa/Lagos', weekday:'long', year:'numeric',
+            month:'long', day:'numeric', hour:'2-digit', minute:'2-digit'
           });
-          console.log('code='+code);
-          console.log('valid_from='+fmt(startUTC));
-          console.log('valid_until='+fmt(endUTC));
-          EOF
-        shell: bash
+          console.log('code=' + code);
+          console.log('valid_from=' + fmt(startUTC));
+          console.log('valid_until=' + fmt(endUTC));
+          NODEEOF
 
-      - name: Send PIN email to billing
+      # Always visible at: github.com → repo → Actions → Daily Invoice PIN → latest run
+      - name: Write PIN to Job Summary (guaranteed fallback)
+        shell: bash
+        run: |
+          echo "## 🔑 Daily Invoice Access PIN" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| | |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **PIN** | \`${{ steps.pin.outputs.code }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **Valid from** | ${{ steps.pin.outputs.valid_from }} (WAT) |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **Valid until** | ${{ steps.pin.outputs.valid_until }} (WAT) |" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "_If email was not received, read the PIN directly from this page._" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Send PIN email (port 587 STARTTLS — more reliable from cloud runners)
+        continue-on-error: true
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: smtpout.secureserver.net
-          server_port: 465
-          secure: true
+          server_port: 587
+          secure: false
           username: ${{ secrets.SMTP_USERNAME }}
           password: ${{ secrets.SMTP_PASSWORD }}
           subject: "Invoice TEK-LD-2026-007 — Today's Access PIN"
@@ -89,10 +69,10 @@ jobs:
 
             Your daily access PIN for Invoice TEK-LD-2026-007 (Netcom Africa) is:
 
-                ► ${{ steps.parsed.outputs.code }} ◄
+                ► ${{ steps.pin.outputs.code }} ◄
 
-            Valid from:  ${{ steps.parsed.outputs.valid_from }} (WAT)
-            Valid until: ${{ steps.parsed.outputs.valid_until }} (WAT)
+            Valid from:  ${{ steps.pin.outputs.valid_from }} (WAT)
+            Valid until: ${{ steps.pin.outputs.valid_until }} (WAT)
 
             A new PIN will be sent automatically at 12:00 PM WAT tomorrow.
             Please keep this PIN confidential and do not forward this email.
