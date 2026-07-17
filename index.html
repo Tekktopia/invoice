@@ -1414,18 +1414,21 @@ function _showSuggestions(results){
   var sug=document.getElementById('m-suggestions');
   sug.innerHTML='';
   results.forEach(function(r){
+    var domain=r.domain||'';
+    /* Clearbit autocomplete often returns logo:null even when it has the image.
+       Always construct the URL from the domain — that's what logo.clearbit.com serves. */
+    var logoSrc=r.logo||(domain?'https://logo.clearbit.com/'+domain:'');
     var item=document.createElement('div');
     item.className='m-sug-item';
-    var logoSrc=r.logo||'';
     item.innerHTML=
       (logoSrc?'<img class="m-sug-logo" src="'+_esc(logoSrc)+'" alt="" onerror="this.style.display=\'none\'">':'<span style="width:28px;height:28px;flex-shrink:0;display:inline-block"></span>')+
-      '<div><div class="m-sug-name">'+_esc(r.name)+'</div><div class="m-sug-domain">'+_esc(r.domain||'')+'</div></div>';
-    item.addEventListener('mousedown',function(e){ e.preventDefault(); }); // prevent blur on name field
+      '<div><div class="m-sug-name">'+_esc(r.name)+'</div><div class="m-sug-domain">'+_esc(domain)+'</div></div>';
+    item.addEventListener('mousedown',function(e){ e.preventDefault(); });
     item.addEventListener('click',function(){
       document.getElementById('m-name').value=r.name;
       document.getElementById('m-logo-url').value=logoSrc;
-      _updateLogoPreview(logoSrc,'🏢');
-      document.getElementById('m-logo-status').textContent=logoSrc?'Logo found: '+r.domain:'No logo available for this company.';
+      if(domain) document.getElementById('m-logo-status').textContent='Loading logo from '+domain+'…';
+      _updateLogoPreview(logoSrc,domain,'🏢');
       _hideSuggestions();
     });
     sug.appendChild(item);
@@ -1438,17 +1441,60 @@ function _hideSuggestions(){
   if(sug) sug.style.display='none';
 }
 
-function _updateLogoPreview(logoUrl,fallback){
+function _updateLogoPreview(logoUrl,domain,fallback){
+  /* signature: (url, domain, fallbackEmoji)
+     Tries: 1) logoUrl  2) Clearbit from domain  3) Google favicon  4) emoji */
   var preview=document.getElementById('m-logo-preview');
   if(!preview) return;
+  var status=document.getElementById('m-logo-status');
+
+  function setEmoji(){ preview.innerHTML=fallback||'🏢'; if(status) status.textContent='No logo found. You can paste a URL manually.'; }
+
+  function tryGoogleFavicon(){
+    if(!domain){ setEmoji(); return; }
+    var gUrl='https://www.google.com/s2/favicons?domain='+encodeURIComponent(domain)+'&sz=128';
+    var gImg=new Image(); gImg.alt='logo';
+    gImg.onload=function(){
+      preview.innerHTML=''; preview.appendChild(gImg);
+      document.getElementById('m-logo-url').value=gUrl;
+      if(status) status.textContent='Favicon loaded from '+domain+'.';
+    };
+    gImg.onerror=setEmoji;
+    gImg.src=gUrl;
+  }
+
+  function tryPrimary(url){
+    var img=new Image(); img.alt='logo';
+    img.onload=function(){
+      preview.innerHTML=''; preview.appendChild(img);
+      document.getElementById('m-logo-url').value=url;
+      if(status) status.textContent='Logo found'+(domain?' · '+domain:'')+'.';
+    };
+    img.onerror=function(){
+      /* primary failed — if we haven't tried the Clearbit-from-domain URL yet, try it */
+      var clearbitUrl=domain?'https://logo.clearbit.com/'+domain:'';
+      if(clearbitUrl&&url!==clearbitUrl){
+        var img2=new Image(); img2.alt='logo';
+        img2.onload=function(){
+          preview.innerHTML=''; preview.appendChild(img2);
+          document.getElementById('m-logo-url').value=clearbitUrl;
+          if(status) status.textContent='Logo found · '+domain+'.';
+        };
+        img2.onerror=tryGoogleFavicon;
+        img2.src=clearbitUrl;
+      } else {
+        tryGoogleFavicon();
+      }
+    };
+    img.src=url;
+  }
+
   if(logoUrl){
-    var img=new Image();
-    img.className=''; img.alt='logo';
-    img.onload=function(){ preview.innerHTML=''; preview.appendChild(img); };
-    img.onerror=function(){ preview.innerHTML=fallback||'🏢'; };
-    img.src=logoUrl;
+    tryPrimary(logoUrl);
+  } else if(domain){
+    tryPrimary('https://logo.clearbit.com/'+domain);
   } else {
-    preview.innerHTML=fallback||'🏢';
+    setEmoji();
   }
 }
 
@@ -1469,7 +1515,7 @@ function _showModal(existingCard){
     document.getElementById('m-addr').value=existingCard.addr||'';
     document.getElementById('m-email').value=existingCard.email||'';
     document.getElementById('m-logo-url').value=existingCard.logo||'';
-    _updateLogoPreview(existingCard.logo||'',existingCard.icon||'🏢');
+    _updateLogoPreview(existingCard.logo||'','',existingCard.icon||'🏢');
     document.getElementById('m-logo-status').textContent=existingCard.logo?'Current logo loaded. Search to change.':'No logo set. Search to find one.';
   } else {
     titleEl.textContent='Add New Client Invoice';
@@ -1577,7 +1623,7 @@ function _deleteCard(id){
   var logoUrlEl=document.getElementById('m-logo-url');
   if(logoUrlEl){
     logoUrlEl.addEventListener('input',function(){
-      _updateLogoPreview(this.value.trim(),'🏢');
+      _updateLogoPreview(this.value.trim(),'','🏢');
     });
   }
 })();
