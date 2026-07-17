@@ -258,6 +258,69 @@
   .totals .ngneq{color:var(--gray); padding-top:7px; font-size:12px;}
   .totals .ngneq .v{font-weight:700; color:var(--ink);}
 
+  /* ---------- date trigger ---------- */
+  .inv-date-trigger{
+    cursor:pointer !important; user-select:none; white-space:nowrap;
+  }
+  .inv-date-trigger:hover{
+    box-shadow:0 0 0 1.5px var(--blue) !important; background:#EBF4FF !important;
+  }
+  .inv-date-trigger:focus{
+    box-shadow:0 0 0 1.5px var(--blue) !important; background:#EBF4FF !important;
+  }
+  .inv-date-trigger::after{
+    content:" ▾"; color:var(--blue); font-size:9px; font-weight:700; font-style:normal;
+  }
+  .inv-due-auto{color:var(--gray);}
+
+  /* ---------- calendar popup ---------- */
+  #calPop{
+    position:fixed; z-index:8500;
+    background:#fff; border:1.5px solid var(--line); border-radius:6px;
+    box-shadow:0 6px 28px rgba(0,0,0,.18); padding:14px 12px 12px;
+    width:256px; user-select:none;
+  }
+  .cal-hdr{
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;
+  }
+  .cal-title{font-weight:700; font-size:13.5px; letter-spacing:.02em;}
+  .cal-nav{
+    font:inherit; background:none; border:none; cursor:pointer;
+    font-size:13px; color:var(--gray); padding:3px 8px; border-radius:3px;
+    line-height:1;
+  }
+  .cal-nav:hover{background:var(--bg); color:var(--ink);}
+  #calGrid{
+    display:grid; grid-template-columns:repeat(7,1fr); gap:2px;
+  }
+  .cal-dow{
+    text-align:center; font-size:9.5px; font-weight:700;
+    color:var(--faint); padding:3px 0; letter-spacing:.05em;
+  }
+  .cal-day{
+    text-align:center; padding:5px 2px; border-radius:50%;
+    cursor:pointer; font-size:12.5px; color:var(--ink); line-height:1.4;
+  }
+  .cal-day:hover{background:var(--bg);}
+  .cal-day.cal-today{font-weight:700; color:var(--blue);}
+  .cal-day.cal-sel{background:var(--blue); color:#fff;}
+  .cal-day.cal-sel:hover{background:#155e99;}
+  .cal-day.cal-empty{cursor:default; pointer-events:none;}
+  .cal-footer{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-top:10px; padding-top:8px; border-top:1px solid var(--bg);
+  }
+  .cal-today-btn{
+    font:inherit; font-size:11.5px; color:var(--blue); background:none;
+    border:none; cursor:pointer; padding:2px 4px;
+  }
+  .cal-today-btn:hover{text-decoration:underline;}
+  .cal-close-btn{
+    font:inherit; font-size:11.5px; color:var(--gray); background:none;
+    border:none; cursor:pointer; padding:2px 4px;
+  }
+  .cal-close-btn:hover{color:var(--ink);}
+
   /* ---------- PIN overlay ---------- */
   #pinOverlay{
     position:fixed; inset:0; z-index:9999;
@@ -440,7 +503,10 @@
   @media print{
     body{background:#fff;}
     .toolbar,.addrow,.c-ctl,.del,.pg-brk,
-    #selScreen,#modalBg,#confirmBg,#toast,#siteFooter{display:none !important;}
+    #selScreen,#modalBg,#confirmBg,#calPop,#toast,#siteFooter{display:none !important;}
+    .inv-date-trigger::after,.inv-date-trigger:hover,.inv-date-trigger:focus{
+      content:none; box-shadow:none !important; background:transparent !important;
+    }
 
     /* Clean white page — no gradient, no shadow */
     .page{
@@ -571,9 +637,9 @@
         <h1>INVOICE</h1>
         <div class="meta">
           <div class="row"><span class="k">Invoice No.</span><span class="v" id="inv-netcom-invNo" contenteditable="true">TEK/LD/2026/007</span></div>
-          <div class="row"><span class="k">Invoice Date</span><span class="v" contenteditable="true">21 July 2026</span></div>
-          <div class="row"><span class="k">Payment Terms</span><span class="v" contenteditable="true">Net 10 days</span></div>
-          <div class="row"><span class="k">Due Date</span><span class="v" contenteditable="true">31 July 2026</span></div>
+          <div class="row"><span class="k">Invoice Date</span><span class="v inv-date-trigger" id="inv-netcom-invDate" contenteditable="true" title="Click to pick a date">21 July 2026</span></div>
+          <div class="row"><span class="k">Payment Terms</span><span class="v" id="inv-netcom-terms" contenteditable="true">Net 10 days</span></div>
+          <div class="row"><span class="k">Due Date</span><span class="v inv-due-auto" id="inv-netcom-dueDate" contenteditable="true">31 July 2026</span></div>
           <div class="row"><span class="k">Currency</span><span class="v" id="inv-netcom-curLabel" contenteditable="true">US Dollar (USD)</span></div>
         </div>
       </div>
@@ -705,9 +771,9 @@
         <h1>INVOICE</h1>
         <div class="meta">
           <div class="row"><span class="k">Invoice No.</span><span class="v" id="inv-monterosa-invNo" contenteditable="true">TEK/LD/2026/008</span></div>
-          <div class="row"><span class="k">Invoice Date</span><span class="v" contenteditable="true"></span></div>
-          <div class="row"><span class="k">Payment Terms</span><span class="v" contenteditable="true">Net 10 days</span></div>
-          <div class="row"><span class="k">Due Date</span><span class="v" contenteditable="true"></span></div>
+          <div class="row"><span class="k">Invoice Date</span><span class="v inv-date-trigger" id="inv-monterosa-invDate" contenteditable="true" title="Click to pick a date"></span></div>
+          <div class="row"><span class="k">Payment Terms</span><span class="v" id="inv-monterosa-terms" contenteditable="true">Net 10 days</span></div>
+          <div class="row"><span class="k">Due Date</span><span class="v inv-due-auto" id="inv-monterosa-dueDate" contenteditable="true"></span></div>
           <div class="row"><span class="k">Currency</span><span class="v" id="inv-monterosa-curLabel" contenteditable="true">US Dollar (USD)</span></div>
         </div>
       </div>
@@ -788,6 +854,20 @@
   <!-- Dynamic invoice wrappers appended by JS -->
 
 </div><!-- /#invoiceContent -->
+
+<!-- ========== CALENDAR POPUP ========== -->
+<div id="calPop" style="display:none" role="dialog" aria-modal="true" aria-label="Pick a date">
+  <div class="cal-hdr">
+    <button class="cal-nav" id="calPrev" onclick="_calNav(-1)" title="Previous month">&#9664;</button>
+    <span id="calTitle" class="cal-title"></span>
+    <button class="cal-nav" id="calNext" onclick="_calNav(1)" title="Next month">&#9654;</button>
+  </div>
+  <div id="calGrid" class="cal-grid"></div>
+  <div class="cal-footer">
+    <button class="cal-today-btn" onclick="_calGoToday()">Today</button>
+    <button class="cal-close-btn" onclick="_hideCal()">Close</button>
+  </div>
+</div>
 
 <!-- ========== NEW / EDIT CLIENT MODAL ========== -->
 <div id="modalBg" onclick="if(event.target===this)_hideModal()">
@@ -1003,6 +1083,9 @@ window._hideModal=_hideModal;
 window._submitModal=_submitModal;
 window._undo=_undo;
 window._redo=_redo;
+window._calNav=_calNav;
+window._calGoToday=_calGoToday;
+window._hideCal=_hideCal;
 window._editCard=_editCard;
 window._deleteCard=_deleteCard;
 window._triggerLogoSearch=_triggerLogoSearch;
@@ -1138,7 +1221,9 @@ function _setupInvoice(id){
     var inBody=body&&body.contains(e.target);
     var isVat=e.target.id===('inv-'+id+'-vat');
     var isFx=e.target.id===('inv-'+id+'-fx');
+    var isTerms=e.target.id===('inv-'+id+'-terms');
     if(inBody||isVat||isFx) _recalcInv(id);
+    if(isTerms) _updateDueDate(id);
   });
 
   /* format numbers on blur */
@@ -1198,6 +1283,7 @@ function _setupInvoice(id){
     if(pgEl) new ResizeObserver(function(){ _updatePageBreaks(id); }).observe(pgEl);
   }
 
+  _setupDateFields(id);
   _recalcInv(id);
 }
 
@@ -1395,6 +1481,154 @@ function _attachObserver(id){
   mo.observe(w,{childList:true,subtree:true,characterData:true});
 }
 
+/* ---- date utilities ---- */
+var MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+var MONTHS_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function _formatDate(d){
+  return d.getDate()+' '+MONTHS[d.getMonth()]+' '+d.getFullYear();
+}
+
+function _parseDisplayDate(str){
+  var s=(str||'').replace(/ /g,' ').trim();
+  var parts=s.split(/\s+/);
+  if(parts.length>=3){
+    var day=parseInt(parts[0]);
+    var month=MONTHS.indexOf(parts[1]);
+    var year=parseInt(parts[2]);
+    if(!isNaN(day)&&month!==-1&&!isNaN(year)) return new Date(year,month,day);
+  }
+  return null;
+}
+
+function _updateDueDate(id){
+  var dateEl=document.getElementById('inv-'+id+'-invDate');
+  var termsEl=document.getElementById('inv-'+id+'-terms');
+  var dueEl=document.getElementById('inv-'+id+'-dueDate');
+  if(!dateEl||!termsEl||!dueEl) return;
+  var parsed=_parseDisplayDate(dateEl.textContent);
+  if(!parsed) return;
+  var m=termsEl.textContent.match(/(\d+)/);
+  if(!m) return;
+  var due=new Date(parsed.getTime());
+  due.setDate(due.getDate()+parseInt(m[1]));
+  dueEl.textContent=_formatDate(due);
+}
+
+/* ---- calendar ---- */
+var _cal={invId:null,year:2026,month:6,selected:null};
+
+function _showCal(invId,triggerEl){
+  _cal.invId=invId;
+  var dateEl=document.getElementById('inv-'+invId+'-invDate');
+  if(dateEl){
+    var p=_parseDisplayDate(dateEl.textContent);
+    if(p){ _cal.year=p.getFullYear(); _cal.month=p.getMonth(); _cal.selected=p; }
+    else { var n=new Date(); _cal.year=n.getFullYear(); _cal.month=n.getMonth(); _cal.selected=null; }
+  }
+  _calRender();
+  var pop=document.getElementById('calPop');
+  pop.style.display='block';
+  /* Position below the trigger, flip up if near bottom of viewport */
+  var rect=triggerEl.getBoundingClientRect();
+  var pw=256, ph=280;
+  var left=Math.min(rect.left, window.innerWidth-pw-8);
+  var top=rect.bottom+6;
+  if(top+ph>window.innerHeight) top=rect.top-ph-6;
+  pop.style.left=Math.max(8,left)+'px';
+  pop.style.top=Math.max(8,top)+'px';
+}
+
+function _hideCal(){
+  document.getElementById('calPop').style.display='none';
+  _cal.invId=null;
+}
+
+function _calNav(delta){
+  _cal.month+=delta;
+  if(_cal.month>11){ _cal.month=0; _cal.year++; }
+  if(_cal.month<0){ _cal.month=11; _cal.year--; }
+  _calRender();
+}
+
+function _calGoToday(){
+  var t=new Date();
+  _cal.year=t.getFullYear(); _cal.month=t.getMonth();
+  _calRender();
+}
+
+function _calSelect(day){
+  _cal.selected=new Date(_cal.year,_cal.month,day);
+  var invId=_cal.invId;
+  var dateEl=document.getElementById('inv-'+invId+'-invDate');
+  if(dateEl){
+    _pushUndoDirect(invId);
+    dateEl.textContent=_formatDate(_cal.selected);
+    _updateDueDate(invId);
+  }
+  _hideCal();
+}
+
+function _calRender(){
+  var title=document.getElementById('calTitle');
+  var grid=document.getElementById('calGrid');
+  if(!title||!grid) return;
+
+  title.textContent=MONTHS[_cal.month]+' '+_cal.year;
+  grid.innerHTML='';
+
+  /* Day-of-week headers (Monday first) */
+  ['Mo','Tu','We','Th','Fr','Sa','Su'].forEach(function(d){
+    var h=document.createElement('div'); h.className='cal-dow'; h.textContent=d; grid.appendChild(h);
+  });
+
+  var first=new Date(_cal.year,_cal.month,1);
+  var last=new Date(_cal.year,_cal.month+1,0);
+  /* Monday=0 … Sunday=6 offset */
+  var startOff=(first.getDay()+6)%7;
+
+  var today=new Date(); today.setHours(0,0,0,0);
+
+  for(var i=0;i<startOff;i++){
+    var blank=document.createElement('div'); blank.className='cal-day cal-empty'; grid.appendChild(blank);
+  }
+  for(var d=1;d<=last.getDate();d++){
+    var cell=document.createElement('div'); cell.className='cal-day'; cell.textContent=d;
+    var thisDate=new Date(_cal.year,_cal.month,d);
+    if(thisDate.getTime()===today.getTime()) cell.classList.add('cal-today');
+    if(_cal.selected&&thisDate.getTime()===_cal.selected.getTime()) cell.classList.add('cal-sel');
+    (function(day){ cell.addEventListener('click',function(){ _calSelect(day); }); })(d);
+    grid.appendChild(cell);
+  }
+}
+
+function _setupDateFields(id){
+  var dateEl=document.getElementById('inv-'+id+'-invDate');
+  if(dateEl){
+    /* Prevent typing — calendar is the only way to set the date */
+    dateEl.addEventListener('keydown',function(e){
+      if(e.key==='Enter'||e.key===' '){ e.preventDefault(); _showCal(id,dateEl); return; }
+      if(!e.ctrlKey&&!e.metaKey&&!e.altKey&&e.key.length===1) e.preventDefault();
+    });
+    dateEl.addEventListener('paste',function(e){ e.preventDefault(); });
+    dateEl.addEventListener('focus',function(){ this.blur(); });
+    dateEl.addEventListener('click',function(e){
+      e.stopPropagation(); _showCal(id,dateEl);
+    });
+  }
+}
+
+/* Close calendar on outside click */
+document.addEventListener('click',function(e){
+  var pop=document.getElementById('calPop');
+  if(pop&&pop.style.display!=='none'&&!pop.contains(e.target)){
+    _hideCal();
+  }
+});
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'&&document.getElementById('calPop').style.display!=='none') _hideCal();
+});
+
 /* ---- dynamic invoice creation ---- */
 function _slugify(name){
   return 'dyn_'+name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,20)+'_'+Date.now().toString(36);
@@ -1438,9 +1672,9 @@ function _buildInvContent(id,opts){
 
   h+='<div class="titlebar"><h1>INVOICE</h1><div class="meta">';
   h+='<div class="row"><span class="k">Invoice No.</span><span class="v" '+eid('invNo')+' '+CE+'>'+_esc(invno)+'</span></div>';
-  h+='<div class="row"><span class="k">Invoice Date</span><span class="v" '+CE+'></span></div>';
-  h+='<div class="row"><span class="k">Payment Terms</span><span class="v" '+CE+'>Net 10 days</span></div>';
-  h+='<div class="row"><span class="k">Due Date</span><span class="v" '+CE+'></span></div>';
+  h+='<div class="row"><span class="k">Invoice Date</span><span class="v inv-date-trigger" '+eid('invDate')+' '+CE+' title="Click to pick a date"></span></div>';
+  h+='<div class="row"><span class="k">Payment Terms</span><span class="v" '+eid('terms')+' '+CE+'>Net 10 days</span></div>';
+  h+='<div class="row"><span class="k">Due Date</span><span class="v inv-due-auto" '+eid('dueDate')+' '+CE+'></span></div>';
   h+='<div class="row"><span class="k">Currency</span><span class="v" '+eid('curLabel')+' '+CE+'>US Dollar (USD)</span></div>';
   h+='</div></div>';
 
