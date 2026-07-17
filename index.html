@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC0AAAAsCAYAAADxRjE/AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAE0SURBVHgB7dg7TsNAEMbxb3cdFF7RXgBhbkBNxRF8BDhB4o6CIimogROQm2DR0HIDzKNFipCowB6MRBHJee1EmTw0PymNN5b+xdiSx3zdHBKWpCTq7aev3XHn/uIxdhE9D18rms3YYg1ptJSodoVMr0CRQ4CFewJDLbrET9ZK3zOsMJ1pKRotRaOl1F55Bjb5vD6IEaiVvvUnnfvLh8SVziMAGRr5/3q0MW1XpTP0Jx06NNqwdIoA4yp0pqX8jUeOcP7/x0aggSEzAEO023k5QqDqQT1zxt5hPrcfVyddMOhMS9FoKRotRaOlaLQUjZayIWuxGTTgsm8qzrEkrOjtNM8x5fNqkXSmpWi0FI2Wwnrl+c69x150HHJPtTLwrL3VCKxot7OVVEureVcIbDrTUtYy+hfjpjr0tTJeigAAAABJRU5ErkJggg==">
-<title>Invoice TEK-LD-2026-007 - Tekktopia Limited</title>
+<title>Invoice Portal — Tekktopia Limited</title>
 <style>
   :root{
     --ink:#22252A; --gray:#5C6570; --faint:#9AA1A9;
@@ -15,17 +15,51 @@
   html,body{margin:0; padding:0;}
   body{
     font-family:Calibri,Carlito,"Segoe UI",Arial,sans-serif;
-    background:#E8EAED; color:var(--ink);
-    font-size:12px; line-height:1.35;
+    background:#E8EAED; color:var(--ink); font-size:12px; line-height:1.35;
   }
 
-  /* ---------- toolbar (screen only) ---------- */
+  /* ---------- selector screen ---------- */
+  #selScreen{max-width:960px; margin:0 auto; padding:28px 16px 40px;}
+  .sel-hdr{
+    background:#fff; border-radius:5px; padding:24px 32px;
+    display:flex; align-items:center; gap:20px;
+    box-shadow:0 2px 14px rgba(0,0,0,.10); margin-bottom:28px;
+  }
+  .sel-brand{display:flex; align-items:center; gap:13px; flex-shrink:0;}
+  .sel-logo{width:46px; height:46px; display:block;}
+  .sel-brandname{font-weight:700; font-size:17px; letter-spacing:.09em;}
+  .sel-brandtag{font-size:10px; color:var(--gray); letter-spacing:.03em; margin-top:2px;}
+  .sel-divider{width:1px; height:48px; background:var(--line); flex-shrink:0;}
+  .sel-hdr-text h2{font-size:19px; font-weight:700; margin:0 0 3px; letter-spacing:.03em;}
+  .sel-hdr-text p{font-size:12px; color:var(--gray); margin:0;}
+  .sel-grid{
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); gap:14px;
+  }
+  .sel-card{
+    background:#fff; border-radius:5px; padding:24px 14px;
+    text-align:center; cursor:pointer;
+    box-shadow:0 1px 6px rgba(0,0,0,.08);
+    border:1.5px solid transparent;
+    transition:box-shadow .15s, transform .12s, border-color .12s;
+  }
+  .sel-card:hover{
+    box-shadow:0 4px 20px rgba(0,0,0,.14);
+    transform:translateY(-2px); border-color:var(--blue);
+  }
+  .sel-icon{font-size:34px; margin-bottom:11px; line-height:1;}
+  .sel-name{font-weight:700; font-size:13.5px; margin-bottom:4px;}
+  .sel-desc{font-size:11px; color:var(--gray); line-height:1.4;}
+  .sel-add{border:2px dashed var(--line); background:transparent; box-shadow:none;}
+  .sel-add .sel-icon{color:var(--blue);}
+  .sel-add .sel-name{color:var(--blue);}
+  .sel-add:hover{border-color:var(--blue); box-shadow:none; transform:none; background:rgba(27,117,188,.04);}
+
+  /* ---------- toolbar ---------- */
   .toolbar{
     max-width:210mm; margin:18px auto 12px; padding:0 4px;
     display:flex; align-items:center; justify-content:space-between; gap:16px;
   }
-  .toolbar .hint{color:var(--gray); font-size:12.5px;}
-  .toolbar .hint small{display:block; color:var(--faint); margin-top:2px;}
+  .toolbar .hint-text{color:var(--gray); font-size:12px;}
   .btn{
     font:inherit; font-weight:700; font-size:13px; letter-spacing:.02em;
     background:var(--ink); color:#fff; border:none; border-radius:3px;
@@ -33,13 +67,18 @@
   }
   .btn:hover{background:#000;}
   .btn:focus-visible{outline:2px solid var(--blue); outline-offset:2px;}
+  .btn-back{
+    background:#fff; color:var(--ink); border:1.5px solid var(--line2);
+    font-weight:700; font-size:13px; letter-spacing:.02em;
+    padding:8px 16px; border-radius:3px; cursor:pointer;
+  }
+  .btn-back:hover{background:var(--bg);}
 
   /* ---------- page ---------- */
   .page{
     width:210mm; min-height:297mm; margin:0 auto 32px;
     background:#fff; box-shadow:0 2px 14px rgba(0,0,0,.14);
-    padding:16mm 18mm 14mm; position:relative;
-    display:flex; flex-direction:column;
+    padding:16mm 18mm 14mm; position:relative; display:flex; flex-direction:column;
   }
 
   /* ---------- editing affordances ---------- */
@@ -53,7 +92,7 @@
   .brand img{width:50px; height:50px; display:block;}
   .brand .name{font-weight:700; font-size:21px; letter-spacing:.09em; padding-top:3px;}
   .brand .tag{font-size:10.5px; color:var(--gray); letter-spacing:.03em; margin-top:2px;}
-  .lh .co{ text-align:right; font-size:10.5px; color:var(--gray); line-height:1.5;}
+  .lh .co{text-align:right; font-size:10.5px; color:var(--gray); line-height:1.5;}
   .rule{border-top:1.2px solid var(--line2); margin-top:14px; position:relative;}
   .rule::before{
     content:""; position:absolute; left:0; top:-2px; height:3px; width:42px;
@@ -82,16 +121,12 @@
   table{width:100%; border-collapse:collapse; margin-top:22px; font-size:12.5px;}
   thead th{
     font-size:10px; letter-spacing:.09em; text-align:left; font-weight:700;
-    border-top:1.4px solid var(--line2); border-bottom:1px solid var(--line2);
-    padding:7px 6px;
+    border-top:1.4px solid var(--line2); border-bottom:1px solid var(--line2); padding:7px 6px;
   }
   tbody td{padding:9px 6px; border-bottom:.7px solid var(--line); vertical-align:top;}
-  .c-sn{width:34px;}
-  .c-qty{width:56px;}
-  .c-unit{width:118px;}
-  .c-amt{width:126px;}
+  .c-sn{width:34px;} .c-qty{width:56px;} .c-unit{width:118px;} .c-amt{width:126px;}
   .c-ctl{width:26px; border:none !important; padding:0 !important;}
-  th.num, td.num{text-align:right;}
+  th.num,td.num{text-align:right;}
   td.sn{color:var(--ink);}
   .del{
     font:inherit; border:none; background:none; color:var(--faint);
@@ -137,15 +172,9 @@
     border-radius:2px; padding:11px 15px; font-size:12px;
   }
   .bankdetails .lbl{margin-bottom:8px;}
-  .bankdetails table{
-    width:auto; border-collapse:collapse; margin-top:0; font-size:12px;
-  }
-  .bankdetails td{
-    padding:2.5px 0; border:none; vertical-align:top; font-size:12px;
-  }
-  .bankdetails td:first-child{
-    color:var(--gray); padding-right:20px; white-space:nowrap;
-  }
+  .bankdetails table{width:auto; border-collapse:collapse; margin-top:0; font-size:12px;}
+  .bankdetails td{padding:2.5px 0; border:none; vertical-align:top; font-size:12px;}
+  .bankdetails td:first-child{color:var(--gray); padding-right:20px; white-space:nowrap;}
   .bankdetails td:last-child{font-weight:700; color:var(--ink); letter-spacing:.01em;}
   .bankdetails .acct-num{font-size:14px; letter-spacing:.08em;}
 
@@ -183,8 +212,7 @@
   }
   #pinCard{
     background:#fff; border-radius:6px; padding:36px 40px;
-    max-width:380px; width:100%;
-    box-shadow:0 8px 40px rgba(0,0,0,.5); text-align:center;
+    max-width:380px; width:100%; box-shadow:0 8px 40px rgba(0,0,0,.5); text-align:center;
   }
   .pin-brand{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:16px;}
   .pin-brand img{width:44px;height:44px;}
@@ -206,88 +234,103 @@
   #pinBtn{
     font:inherit;font-weight:700;font-size:13.5px;letter-spacing:.03em;
     background:var(--ink);color:#fff;border:none;border-radius:4px;
-    padding:12px 0;cursor:pointer;width:100%;margin-bottom:18px;
-    transition:background .15s;
+    padding:12px 0;cursor:pointer;width:100%;margin-bottom:18px;transition:background .15s;
   }
   #pinBtn:hover{background:#000;}
   #pinBtn:disabled{background:var(--gray);cursor:not-allowed;}
   .pin-note{font-size:10.5px;color:var(--faint);line-height:1.5;}
 
+  /* ---------- modal ---------- */
+  #modalBg{
+    position:fixed; inset:0; background:rgba(0,0,0,.55);
+    z-index:8000; display:none; align-items:center; justify-content:center; padding:20px;
+  }
+  #modalCard{
+    background:#fff; border-radius:6px; padding:32px 36px;
+    max-width:440px; width:100%; box-shadow:0 8px 40px rgba(0,0,0,.28);
+  }
+  .modal-title{font-size:17px; font-weight:700; letter-spacing:.04em; margin-bottom:18px;}
+  .modal-label{
+    display:block; font-size:10.5px; font-weight:700; letter-spacing:.08em;
+    color:var(--gray); text-transform:uppercase; margin:13px 0 5px;
+  }
+  .modal-label:first-of-type{margin-top:0;}
+  .modal-req{color:#C0392B;}
+  .modal-input{
+    width:100%; font:inherit; font-size:13px; padding:8px 10px;
+    border:1.5px solid var(--line); border-radius:3px; outline:none; color:var(--ink);
+  }
+  .modal-input:focus{border-color:var(--blue);}
+  .modal-actions{display:flex; gap:10px; justify-content:flex-end; margin-top:22px;}
+  .modal-cancel{
+    font:inherit; font-size:13px; padding:9px 20px;
+    border:1.5px solid var(--line); border-radius:3px;
+    background:#fff; cursor:pointer; color:var(--gray);
+  }
+  .modal-cancel:hover{border-color:var(--gray); color:var(--ink);}
+  .modal-ok{
+    font:inherit; font-weight:700; font-size:13px; padding:9px 20px;
+    border:none; border-radius:3px; background:var(--blue); color:#fff; cursor:pointer;
+  }
+  .modal-ok:hover{background:#155e99;}
+  .modal-err{font-size:12px; color:#C0392B; margin-top:8px; min-height:18px; font-weight:600;}
+
+  /* ---------- toast ---------- */
+  #toast{
+    position:fixed; bottom:24px; right:24px; background:var(--ink); color:#fff;
+    font-size:12.5px; padding:10px 18px; border-radius:4px;
+    box-shadow:0 4px 16px rgba(0,0,0,.28); z-index:9998;
+    opacity:0; transition:opacity .2s; pointer-events:none;
+  }
+  #toast.show{opacity:1;}
+
   /* ---------- mobile ---------- */
   @media screen and (max-width:680px){
     body{font-size:13px;}
-
-    /* toolbar */
-    .toolbar{
-      flex-direction:column; align-items:stretch;
-      max-width:100%; margin:12px 12px 8px; gap:10px;
-    }
-    .toolbar .hint small{display:none;}
+    .toolbar{flex-direction:column; align-items:stretch; max-width:100%; margin:12px 12px 8px; gap:10px;}
     .tools{justify-content:space-between;}
     .btn{font-size:14px; padding:11px 20px; text-align:center;}
-
-    /* page — fluid, no side shadow */
-    .page{
-      width:100%; min-height:unset;
-      margin:0 0 20px; padding:20px 16px 16px;
-      box-shadow:none; border-radius:0;
-    }
-
-    /* letterhead — stack brand above address */
+    .page{width:100%; min-height:unset; margin:0 0 20px; padding:20px 16px 16px; box-shadow:none; border-radius:0;}
     .lh{flex-direction:column; gap:14px;}
     .lh .co{text-align:left;}
     .brand .name{font-size:18px;}
-
-    /* title bar — stack INVOICE heading above meta */
     .titlebar{flex-direction:column; gap:14px;}
     h1{font-size:22px;}
     .meta .row{justify-content:flex-start;}
     .meta .k{text-align:left; min-width:110px;}
     .meta .v{text-align:left; min-width:unset;}
-
-    /* items table — horizontal scroll so nothing gets crushed */
     table{display:block; overflow-x:auto; -webkit-overflow-scrolling:touch;}
-
-    /* delete button always visible on touch (no hover state on mobile) */
     .del{visibility:visible; font-size:18px; padding:8px 6px;}
-
-    /* add-row button full width */
     .addrow{width:100%; text-align:center; padding:10px 14px;}
-
-    /* words + totals — stack vertically */
     .below{flex-direction:column; gap:16px;}
     .words{max-width:100%;}
     .totals{width:100%;}
-
-    /* naira box */
     .naira{font-size:12px;}
-
-    /* payment info lines wrap better */
     .payinfo div{font-size:13px; line-height:1.6;}
-
-    /* PIN overlay */
     #pinOverlay{padding:16px;}
     #pinCard{padding:28px 20px;}
     #pinDigits{gap:10px;}
     .pinD{width:58px; height:66px; font-size:26px;}
+    .sel-hdr{flex-direction:column; text-align:center; padding:20px 16px;}
+    .sel-divider{display:none;}
+    .sel-grid{grid-template-columns:1fr 1fr;}
+    #modalCard{padding:24px 18px;}
   }
-
-  /* delete always visible on touch devices regardless of screen size */
   @media(hover:none){.del{visibility:visible;}}
 
   /* ---------- print ---------- */
   @page{size:A4; margin:0;}
-    #siteFooter{text-align:center;padding:18px 16px 22px;font-size:11.5px;color:#9AA1A9;background:#E8EAED;border-top:1px solid #D0D3D7;}
-  #siteFooter a{color:#1B75BC;text-decoration:none;font-weight:700;}
-  #siteFooter a:hover{text-decoration:underline;}  #siteFooter{text-align:center;padding:18px 16px 22px;font-size:11.5px;color:#9AA1A9;background:#E8EAED;border-top:1px solid #D0D3D7;}
-  #siteFooter a{color:#1B75BC;text-decoration:none;font-weight:700;}
-  #siteFooter a:hover{text-decoration:underline;}
-@media print{
+  @media print{
     body{background:#fff;}
-    .toolbar,.addrow,.c-ctl,.del{display:none !important;}
+    .toolbar,.addrow,.c-ctl,.del,#selScreen,#modalBg,#toast,#siteFooter{display:none !important;}
     .page{box-shadow:none; margin:0; width:210mm; min-height:297mm;}
     [contenteditable]:hover,[contenteditable]:focus{box-shadow:none; background:transparent;}
   }
+
+  /* ---------- site footer ---------- */
+  #siteFooter{text-align:center;padding:18px 16px 22px;font-size:11.5px;color:#9AA1A9;background:#E8EAED;border-top:1px solid #D0D3D7;}
+  #siteFooter a{color:#1B75BC;text-decoration:none;font-weight:700;}
+  #siteFooter a:hover{text-decoration:underline;}
 </style>
 </head>
 <body>
@@ -304,7 +347,7 @@
     </div>
     <div class="pin-rule"></div>
     <div class="pin-title">PROTECTED DOCUMENT</div>
-    <div class="pin-sub">Enter your 4-digit PIN to access this invoice.</div>
+    <div class="pin-sub">Enter your 4-digit PIN to access the invoice portal.</div>
     <div id="pinDigits">
       <input class="pinD" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off">
       <input class="pinD" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off">
@@ -312,7 +355,7 @@
       <input class="pinD" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off">
     </div>
     <div id="pinErr"></div>
-    <button id="pinBtn">Access Invoice</button>
+    <button id="pinBtn">Access Invoice Portal</button>
     <div class="pin-note">Unauthorised access attempts are logged and reported to Tekktopia.</div>
   </div>
 </div>
@@ -320,360 +363,847 @@
 <!-- ========== INVOICE CONTENT (hidden until PIN passed) ========== -->
 <div id="invoiceContent" style="display:none">
 
-<div class="toolbar">
-  <div class="hint">
-    Click any text to edit &mdash; totals, the amount in words and the naira figure update automatically.
-    <small>Switch USD / NGN to issue a naira invoice (prices convert at the exchange rate). Download PDF opens your browser&rsquo;s print dialog: choose &ldquo;Save as PDF&rdquo;.</small>
-  </div>
-  <div class="tools">
-    <div class="seg" role="group" aria-label="Invoice currency">
-      <button type="button" class="segbtn active" id="modeUSD" aria-pressed="true">USD&nbsp;$</button>
-      <button type="button" class="segbtn" id="modeNGN" aria-pressed="false">NGN&nbsp;&#8358;</button>
-    </div>
-    <button class="btn" onclick="window.print()">Download PDF</button>
-  </div>
-</div>
-
-<div class="page">
-
-  <!-- letterhead -->
-  <div class="lh">
-    <div class="brand">
-      <img src="data:image/png;base64,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" alt="Tekktopia logo">
-      <div>
-        <div class="name" contenteditable="true">TEKKTOPIA LIMITED</div>
-        <div class="tag" contenteditable="true">Information Technology Services</div>
+  <!-- SELECTOR SCREEN -->
+  <div id="selScreen">
+    <div class="sel-hdr">
+      <div class="sel-brand">
+        <img src="assets/tekktopia-logo.png" alt="Tekktopia" class="sel-logo">
+        <div>
+          <div class="sel-brandname">TEKKTOPIA LIMITED</div>
+          <div class="sel-brandtag">Information Technology Services</div>
+        </div>
+      </div>
+      <div class="sel-divider"></div>
+      <div class="sel-hdr-text">
+        <h2>Client Invoice Portal</h2>
+        <p>Select a client to open their invoice, or add a new client.</p>
       </div>
     </div>
-    <div class="co">
-      <div contenteditable="true">43 Baale Street, Igbo-Efon, Lekki, Lagos, Nigeria</div>
-      <div contenteditable="true">+234 815 433 2992&nbsp;&nbsp;|&nbsp;&nbsp;billing@tekktopia.com</div>
-      <div contenteditable="true">www.tekktopia.com</div>
-      <div contenteditable="true">RC 7466800&nbsp;&nbsp;|&nbsp;&nbsp;TIN 31661991-0001</div>
-    </div>
-  </div>
-  <div class="rule"></div>
-
-  <!-- title + meta -->
-  <div class="titlebar">
-    <h1>INVOICE</h1>
-    <div class="meta">
-      <div class="row"><span class="k">Invoice No.</span><span class="v" id="invNo" contenteditable="true">TEK/LD/2026/007</span></div>
-      <div class="row"><span class="k">Invoice Date</span><span class="v" contenteditable="true">21 July 2026</span></div>
-      <div class="row"><span class="k">Payment Terms</span><span class="v" contenteditable="true">Net 10 days</span></div>
-      <div class="row"><span class="k">Due Date</span><span class="v" contenteditable="true">31 July 2026</span></div>
-      <div class="row"><span class="k">Currency</span><span class="v" id="curLabel" contenteditable="true">US Dollar (USD)</span></div>
+    <div class="sel-grid" id="selGrid">
+      <!-- rendered by JS -->
     </div>
   </div>
 
-  <!-- bill to -->
-  <div class="billto">
-    <div class="lbl">BILL TO</div>
-    <div class="n" contenteditable="true">Netcom Africa Limited</div>
-    <div contenteditable="true">Attn: Finance Department</div>
-    <div class="sub" contenteditable="true">6th Floor, South Atlantic Petroleum Towers,</div>
-    <div class="sub" contenteditable="true">1 Adeola Odeku Street, Victoria Island, Lagos, Nigeria</div>
-    <div class="sub" contenteditable="true">solutions@netcomafrica.com</div>
-  </div>
-
-  <!-- items -->
-  <table>
-    <thead>
-      <tr>
-        <th class="c-sn">S/N</th>
-        <th>DESCRIPTION</th>
-        <th class="c-qty num">QTY</th>
-        <th class="c-unit num" id="unitHead">UNIT PRICE (USD)</th>
-        <th class="c-amt num" id="amtHead">AMOUNT (USD)</th>
-        <th class="c-ctl"></th>
-      </tr>
-    </thead>
-    <tbody id="itemsBody">
-      <tr>
-        <td class="sn">1</td>
-        <td class="desc" contenteditable="true">Apex POB Software Implementation</td>
-        <td class="num qty" contenteditable="true">1</td>
-        <td class="num unit" contenteditable="true">6,200.00</td>
-        <td class="num amt">6,200.00</td>
-        <td class="c-ctl"><button class="del" title="Remove this line" aria-label="Remove line">&times;</button></td>
-      </tr>
-      <tr>
-        <td class="sn">2</td>
-        <td class="desc" contenteditable="true">ZKTeco Musterguard Integration &ndash; API Connector Licence</td>
-        <td class="num qty" contenteditable="true">1</td>
-        <td class="num unit" contenteditable="true">1,250.00</td>
-        <td class="num amt">1,250.00</td>
-        <td class="c-ctl"><button class="del" title="Remove this line" aria-label="Remove line">&times;</button></td>
-      </tr>
-      <tr>
-        <td class="sn">3</td>
-        <td class="desc" contenteditable="true">Support &amp; Maintenance (MRC)</td>
-        <td class="num qty" contenteditable="true">1</td>
-        <td class="num unit" contenteditable="true">180.00</td>
-        <td class="num amt">180.00</td>
-        <td class="c-ctl"><button class="del" title="Remove this line" aria-label="Remove line">&times;</button></td>
-      </tr>
-    </tbody>
-  </table>
-  <button class="addrow" id="addRow">+ Add line item</button>
-
-  <!-- words + totals -->
-  <div class="below">
-    <div class="words">
-      <div class="lb">Amount in words:</div>
-      <div class="tx" id="words">Eight Thousand, Two Hundred and Two US Dollars, Twenty-Five Cents Only.</div>
+  <!-- ====== INV 1: NETCOM AFRICA ====== -->
+  <div id="inv-netcom" class="inv-wrapper" style="display:none">
+    <div class="toolbar">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button class="btn-back" onclick="backToSelector()">&#8592; Back</button>
+        <span class="hint-text">Click any text to edit &mdash; totals update automatically &middot; changes auto-save</span>
+      </div>
+      <div class="tools">
+        <div class="seg" role="group" aria-label="Invoice currency">
+          <button type="button" class="segbtn active" id="inv-netcom-modeUSD" aria-pressed="true">USD&nbsp;$</button>
+          <button type="button" class="segbtn" id="inv-netcom-modeNGN" aria-pressed="false">NGN&nbsp;&#8358;</button>
+        </div>
+        <button class="btn" onclick="window.print()">Download PDF</button>
+      </div>
     </div>
-    <div class="totals">
-      <div class="row"><span class="k">Subtotal</span><span class="v" id="subtotal">7,630.00</span></div>
-      <div class="row"><span class="k">VAT (<span id="vatPct" contenteditable="true">7.5</span>%)</span><span class="v" id="vatAmt">572.25</span></div>
-      <div class="row grand"><span class="k" id="grandLbl">TOTAL DUE (USD)</span><span class="v"><span id="curSym">$</span><span id="totalDue">8,202.25</span></span></div>
-      <div class="row ngneq" id="ngnEqRow"><span class="k">Naira equivalent</span><span class="v">NGN <span id="ngnEq">11,540,565.75</span></span></div>
+    <div class="page">
+      <div class="lh">
+        <div class="brand">
+          <img src="assets/tekktopia-logo.png" alt="Tekktopia logo">
+          <div>
+            <div class="name" contenteditable="true">TEKKTOPIA LIMITED</div>
+            <div class="tag" contenteditable="true">Information Technology Services</div>
+          </div>
+        </div>
+        <div class="co">
+          <div contenteditable="true">43 Baale Street, Igbo-Efon, Lekki, Lagos, Nigeria</div>
+          <div contenteditable="true">+234 815 433 2992&nbsp;&nbsp;|&nbsp;&nbsp;billing@tekktopia.com</div>
+          <div contenteditable="true">www.tekktopia.com</div>
+          <div contenteditable="true">RC 7466800&nbsp;&nbsp;|&nbsp;&nbsp;TIN 31661991-0001</div>
+        </div>
+      </div>
+      <div class="rule"></div>
+      <div class="titlebar">
+        <h1>INVOICE</h1>
+        <div class="meta">
+          <div class="row"><span class="k">Invoice No.</span><span class="v" id="inv-netcom-invNo" contenteditable="true">TEK/LD/2026/007</span></div>
+          <div class="row"><span class="k">Invoice Date</span><span class="v" contenteditable="true">21 July 2026</span></div>
+          <div class="row"><span class="k">Payment Terms</span><span class="v" contenteditable="true">Net 10 days</span></div>
+          <div class="row"><span class="k">Due Date</span><span class="v" contenteditable="true">31 July 2026</span></div>
+          <div class="row"><span class="k">Currency</span><span class="v" id="inv-netcom-curLabel" contenteditable="true">US Dollar (USD)</span></div>
+        </div>
+      </div>
+      <div class="billto">
+        <div class="lbl">BILL TO</div>
+        <div class="n" contenteditable="true">Netcom Africa Limited</div>
+        <div contenteditable="true">Attn: Finance Department</div>
+        <div class="sub" contenteditable="true">6th Floor, South Atlantic Petroleum Towers,</div>
+        <div class="sub" contenteditable="true">1 Adeola Odeku Street, Victoria Island, Lagos, Nigeria</div>
+        <div class="sub" contenteditable="true">solutions@netcomafrica.com</div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th class="c-sn">S/N</th>
+            <th>DESCRIPTION</th>
+            <th class="c-qty num">QTY</th>
+            <th class="c-unit num" id="inv-netcom-unitHead">UNIT PRICE (USD)</th>
+            <th class="c-amt num" id="inv-netcom-amtHead">AMOUNT (USD)</th>
+            <th class="c-ctl"></th>
+          </tr>
+        </thead>
+        <tbody id="inv-netcom-body">
+          <tr>
+            <td class="sn">1</td>
+            <td class="desc" contenteditable="true">Apex POB Software Implementation</td>
+            <td class="num qty" contenteditable="true">1</td>
+            <td class="num unit" contenteditable="true">6,200.00</td>
+            <td class="num amt">6,200.00</td>
+            <td class="c-ctl"><button class="del" title="Remove">&times;</button></td>
+          </tr>
+          <tr>
+            <td class="sn">2</td>
+            <td class="desc" contenteditable="true">ZKTeco Musterguard Integration &ndash; API Connector Licence</td>
+            <td class="num qty" contenteditable="true">1</td>
+            <td class="num unit" contenteditable="true">1,250.00</td>
+            <td class="num amt">1,250.00</td>
+            <td class="c-ctl"><button class="del" title="Remove">&times;</button></td>
+          </tr>
+          <tr>
+            <td class="sn">3</td>
+            <td class="desc" contenteditable="true">Support &amp; Maintenance (MRC)</td>
+            <td class="num qty" contenteditable="true">1</td>
+            <td class="num unit" contenteditable="true">180.00</td>
+            <td class="num amt">180.00</td>
+            <td class="c-ctl"><button class="del" title="Remove">&times;</button></td>
+          </tr>
+        </tbody>
+      </table>
+      <button class="addrow" id="inv-netcom-addRow">+ Add line item</button>
+      <div class="below">
+        <div class="words">
+          <div class="lb">Amount in words:</div>
+          <div class="tx" id="inv-netcom-words"></div>
+        </div>
+        <div class="totals">
+          <div class="row"><span class="k">Subtotal</span><span class="v" id="inv-netcom-subtotal"></span></div>
+          <div class="row"><span class="k">VAT (<span id="inv-netcom-vat" contenteditable="true">7.5</span>%)</span><span class="v" id="inv-netcom-vatAmt"></span></div>
+          <div class="row grand"><span class="k" id="inv-netcom-grandLbl">TOTAL DUE (USD)</span><span class="v"><span id="inv-netcom-curSym">$</span><span id="inv-netcom-totalDue"></span></span></div>
+          <div class="row ngneq" id="inv-netcom-ngnEqRow"><span class="k">Naira equivalent</span><span class="v">NGN <span id="inv-netcom-ngnEq"></span></span></div>
+        </div>
+      </div>
+      <div class="naira" id="inv-netcom-nairaBox">
+        <div class="lbl">NAIRA PAYMENT OPTION</div>
+        <div>Exchange rate reference:&nbsp; US$1.00 = NGN <span id="inv-netcom-fx" contenteditable="true">1,407.00</span>&nbsp; (<span contenteditable="true">indicative market rate as at 21 July 2026</span>).</div>
+        <div class="l2">Naira equivalent of total due:&nbsp; NGN <span id="inv-netcom-ngnTotal"></span>.&nbsp; Naira payments should apply the prevailing rate on the payment date.</div>
+      </div>
+      <div class="bankdetails">
+        <div class="lbl">BANK DETAILS</div>
+        <table>
+          <tr><td>Bank Name</td><td contenteditable="true">Globus Bank</td></tr>
+          <tr><td>Account Name</td><td contenteditable="true">Tekktopia Limited</td></tr>
+          <tr><td>Account Number</td><td class="acct-num" contenteditable="true">1000355310</td></tr>
+        </table>
+      </div>
+      <div class="payinfo">
+        <div class="lbl">PAYMENT INFORMATION</div>
+        <div contenteditable="true">Payment is due within 10 days of the invoice date, i.e. on or before 31 July 2026.</div>
+        <div contenteditable="true">Kindly send proof of payment to billing@tekktopia.com, quoting invoice number <span class="invno-ref">TEK/LD/2026/007</span>.</div>
+        <div contenteditable="true">Please direct all enquiries regarding this invoice to your account manager or billing@tekktopia.com.</div>
+      </div>
+      <div class="am">
+        <div class="lbl">ACCOUNT MANAGER</div>
+        <div class="n" contenteditable="true">Boluwatife Oni</div>
+        <div class="c" contenteditable="true">boluwatifeo@tekktopia.com&nbsp;&nbsp;|&nbsp;&nbsp;+234 903 659 9775</div>
+      </div>
+      <div class="foot">
+        <div class="thanks" contenteditable="true">Thank you for your business.</div>
+        <div class="reg" contenteditable="true">Tekktopia Limited&nbsp; |&nbsp; RC 7466800&nbsp; |&nbsp; TIN 31661991-0001&nbsp; |&nbsp; www.tekktopia.com</div>
+      </div>
     </div>
   </div>
 
-  <!-- naira reference -->
-  <div class="naira" id="nairaBox">
-    <div class="lbl">NAIRA PAYMENT OPTION</div>
-    <div>Exchange rate reference:&nbsp; US$1.00 = NGN <span id="fxRate" contenteditable="true">1,407.00</span>&nbsp; (<span contenteditable="true">indicative market rate as at 21 July 2026</span>).</div>
-    <div class="l2">Naira equivalent of total due:&nbsp; NGN <span id="ngnTotal">11,540,565.75</span>.&nbsp; Naira payments should apply the prevailing rate on the payment date.</div>
+  <!-- ====== INV 2: MONTEROSA CONSTRUCTIONS ====== -->
+  <div id="inv-monterosa" class="inv-wrapper" style="display:none">
+    <div class="toolbar">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button class="btn-back" onclick="backToSelector()">&#8592; Back</button>
+        <span class="hint-text">Click any text to edit &mdash; totals update automatically &middot; changes auto-save</span>
+      </div>
+      <div class="tools">
+        <div class="seg" role="group" aria-label="Invoice currency">
+          <button type="button" class="segbtn active" id="inv-monterosa-modeUSD" aria-pressed="true">USD&nbsp;$</button>
+          <button type="button" class="segbtn" id="inv-monterosa-modeNGN" aria-pressed="false">NGN&nbsp;&#8358;</button>
+        </div>
+        <button class="btn" onclick="window.print()">Download PDF</button>
+      </div>
+    </div>
+    <div class="page">
+      <div class="lh">
+        <div class="brand">
+          <img src="assets/tekktopia-logo.png" alt="Tekktopia logo">
+          <div>
+            <div class="name" contenteditable="true">TEKKTOPIA LIMITED</div>
+            <div class="tag" contenteditable="true">Information Technology Services</div>
+          </div>
+        </div>
+        <div class="co">
+          <div contenteditable="true">43 Baale Street, Igbo-Efon, Lekki, Lagos, Nigeria</div>
+          <div contenteditable="true">+234 815 433 2992&nbsp;&nbsp;|&nbsp;&nbsp;billing@tekktopia.com</div>
+          <div contenteditable="true">www.tekktopia.com</div>
+          <div contenteditable="true">RC 7466800&nbsp;&nbsp;|&nbsp;&nbsp;TIN 31661991-0001</div>
+        </div>
+      </div>
+      <div class="rule"></div>
+      <div class="titlebar">
+        <h1>INVOICE</h1>
+        <div class="meta">
+          <div class="row"><span class="k">Invoice No.</span><span class="v" id="inv-monterosa-invNo" contenteditable="true">TEK/LD/2026/008</span></div>
+          <div class="row"><span class="k">Invoice Date</span><span class="v" contenteditable="true"></span></div>
+          <div class="row"><span class="k">Payment Terms</span><span class="v" contenteditable="true">Net 10 days</span></div>
+          <div class="row"><span class="k">Due Date</span><span class="v" contenteditable="true"></span></div>
+          <div class="row"><span class="k">Currency</span><span class="v" id="inv-monterosa-curLabel" contenteditable="true">US Dollar (USD)</span></div>
+        </div>
+      </div>
+      <div class="billto">
+        <div class="lbl">BILL TO</div>
+        <div class="n" contenteditable="true">Monterosa Constructions Ltd.</div>
+        <div contenteditable="true">Attn: Finance Department</div>
+        <div class="sub" contenteditable="true"></div>
+        <div class="sub" contenteditable="true"></div>
+        <div class="sub" contenteditable="true"></div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th class="c-sn">S/N</th>
+            <th>DESCRIPTION</th>
+            <th class="c-qty num">QTY</th>
+            <th class="c-unit num" id="inv-monterosa-unitHead">UNIT PRICE (USD)</th>
+            <th class="c-amt num" id="inv-monterosa-amtHead">AMOUNT (USD)</th>
+            <th class="c-ctl"></th>
+          </tr>
+        </thead>
+        <tbody id="inv-monterosa-body">
+          <tr>
+            <td class="sn">1</td>
+            <td class="desc" contenteditable="true">Professional Services</td>
+            <td class="num qty" contenteditable="true">1</td>
+            <td class="num unit" contenteditable="true">0.00</td>
+            <td class="num amt">0.00</td>
+            <td class="c-ctl"><button class="del" title="Remove">&times;</button></td>
+          </tr>
+        </tbody>
+      </table>
+      <button class="addrow" id="inv-monterosa-addRow">+ Add line item</button>
+      <div class="below">
+        <div class="words">
+          <div class="lb">Amount in words:</div>
+          <div class="tx" id="inv-monterosa-words"></div>
+        </div>
+        <div class="totals">
+          <div class="row"><span class="k">Subtotal</span><span class="v" id="inv-monterosa-subtotal"></span></div>
+          <div class="row"><span class="k">VAT (<span id="inv-monterosa-vat" contenteditable="true">7.5</span>%)</span><span class="v" id="inv-monterosa-vatAmt"></span></div>
+          <div class="row grand"><span class="k" id="inv-monterosa-grandLbl">TOTAL DUE (USD)</span><span class="v"><span id="inv-monterosa-curSym">$</span><span id="inv-monterosa-totalDue"></span></span></div>
+          <div class="row ngneq" id="inv-monterosa-ngnEqRow"><span class="k">Naira equivalent</span><span class="v">NGN <span id="inv-monterosa-ngnEq"></span></span></div>
+        </div>
+      </div>
+      <div class="naira" id="inv-monterosa-nairaBox">
+        <div class="lbl">NAIRA PAYMENT OPTION</div>
+        <div>Exchange rate reference:&nbsp; US$1.00 = NGN <span id="inv-monterosa-fx" contenteditable="true">1,407.00</span>&nbsp; (<span contenteditable="true">indicative market rate</span>).</div>
+        <div class="l2">Naira equivalent of total due:&nbsp; NGN <span id="inv-monterosa-ngnTotal"></span>.&nbsp; Naira payments should apply the prevailing rate on the payment date.</div>
+      </div>
+      <div class="bankdetails">
+        <div class="lbl">BANK DETAILS</div>
+        <table>
+          <tr><td>Bank Name</td><td contenteditable="true">Globus Bank</td></tr>
+          <tr><td>Account Name</td><td contenteditable="true">Tekktopia Limited</td></tr>
+          <tr><td>Account Number</td><td class="acct-num" contenteditable="true">1000355310</td></tr>
+        </table>
+      </div>
+      <div class="payinfo">
+        <div class="lbl">PAYMENT INFORMATION</div>
+        <div contenteditable="true">Payment is due within 10 days of the invoice date.</div>
+        <div contenteditable="true">Kindly send proof of payment to billing@tekktopia.com, quoting invoice number <span class="invno-ref">TEK/LD/2026/008</span>.</div>
+        <div contenteditable="true">Please direct all enquiries regarding this invoice to your account manager or billing@tekktopia.com.</div>
+      </div>
+      <div class="am">
+        <div class="lbl">ACCOUNT MANAGER</div>
+        <div class="n" contenteditable="true">Boluwatife Oni</div>
+        <div class="c" contenteditable="true">boluwatifeo@tekktopia.com&nbsp;&nbsp;|&nbsp;&nbsp;+234 903 659 9775</div>
+      </div>
+      <div class="foot">
+        <div class="thanks" contenteditable="true">Thank you for your business.</div>
+        <div class="reg" contenteditable="true">Tekktopia Limited&nbsp; |&nbsp; RC 7466800&nbsp; |&nbsp; TIN 31661991-0001&nbsp; |&nbsp; www.tekktopia.com</div>
+      </div>
+    </div>
   </div>
 
-  <!-- bank details -->
-  <div class="bankdetails">
-    <div class="lbl">BANK DETAILS</div>
-    <table>
-      <tr>
-        <td>Bank Name</td>
-        <td contenteditable="true">Globus Bank</td>
-      </tr>
-      <tr>
-        <td>Account Name</td>
-        <td contenteditable="true">Tekktopia Limited</td>
-      </tr>
-      <tr>
-        <td>Account Number</td>
-        <td class="acct-num" contenteditable="true">1000355310</td>
-      </tr>
-    </table>
-  </div>
-
-  <!-- payment information -->
-  <div class="payinfo">
-    <div class="lbl">PAYMENT INFORMATION</div>
-    <div contenteditable="true">Payment is due within 10 days of the invoice date, i.e. on or before 31 July 2026.</div>
-    <div contenteditable="true">Kindly send proof of payment to billing@tekktopia.com, quoting invoice number <span class="invno-ref">TEK/LD/2026/007</span>.</div>
-    <div contenteditable="true">Please direct all enquiries regarding this invoice to your account manager or billing@tekktopia.com.</div>
-  </div>
-
-  <!-- account manager -->
-  <div class="am">
-    <div class="lbl">ACCOUNT MANAGER</div>
-    <div class="n" contenteditable="true">Boluwatife Oni</div>
-    <div class="c" contenteditable="true">boluwatifeo@tekktopia.com&nbsp;&nbsp;|&nbsp;&nbsp;+234 903 659 9775</div>
-  </div>
-
-  <!-- footer -->
-  <div class="foot">
-    <div class="thanks" contenteditable="true">Thank you for your business.</div>
-    <div class="reg" contenteditable="true">Tekktopia Limited&nbsp; |&nbsp; RC 7466800&nbsp; |&nbsp; TIN 31661991-0001&nbsp; |&nbsp; www.tekktopia.com</div>
-  </div>
-
-</div>
-
-<script>
-(function(){
-  "use strict";
-  var body = document.getElementById('itemsBody');
-  var mode = 'USD';
-
-  function parseNum(t){
-    var v = parseFloat(String(t).replace(/[^0-9.\-]/g,''));
-    return isNaN(v) ? 0 : v;
-  }
-  function fmt(v){
-    return v.toLocaleString('en-US',{minimumFractionDigits:2, maximumFractionDigits:2});
-  }
-  function round2(v){ return Math.round(v*100)/100; }
-
-  /* ---- number to words ---- */
-  var ONES=['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve',
-    'Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
-  var TENS=['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
-  function three(n){
-    var s='', h=Math.floor(n/100), r=n%100;
-    if(h) s+=ONES[h]+' Hundred';
-    if(r){
-      s+= h ? ' and ' : '';
-      s+= r<20 ? ONES[r] : TENS[Math.floor(r/10)] + (r%10 ? '-'+ONES[r%10] : '');
-    }
-    return s;
-  }
-  function intWords(n){
-    if(n===0) return 'Zero';
-    var groups=[[1e9,'Billion'],[1e6,'Million'],[1e3,'Thousand'],[1,'']], parts=[], q;
-    for(var i=0;i<groups.length;i++){
-      q=Math.floor(n/groups[i][0]);
-      if(q){ parts.push(three(q)+(groups[i][1]?' '+groups[i][1]:'')); n%=groups[i][0]; }
-    }
-    return parts.join(', ');
-  }
-  function amountWords(total){
-    var u = mode==='USD'
-      ? {one:'US Dollar', many:'US Dollars', subOne:'Cent', subMany:'Cents'}
-      : {one:'Naira',     many:'Naira',      subOne:'Kobo', subMany:'Kobo'};
-    var d=Math.floor(total), c=Math.round((total-d)*100);
-    if(c===100){ d++; c=0; }
-    var s=intWords(d)+' '+(d===1?u.one:u.many);
-    if(c) s+=', '+intWords(c)+' '+(c===1?u.subOne:u.subMany);
-    return s+' Only.';
-  }
-
-  /* ---- recalculation ---- */
-  function recalc(){
-    var rows=body.querySelectorAll('tr'), subtotal=0;
-    rows.forEach(function(tr,i){
-      tr.querySelector('.sn').textContent = i+1;
-      var q=parseNum(tr.querySelector('.qty').textContent);
-      var u=parseNum(tr.querySelector('.unit').textContent);
-      var a=round2(q*u);
-      tr.querySelector('.amt').textContent = fmt(a);
-      subtotal+=a;
-    });
-    subtotal=round2(subtotal);
-    var pct=parseNum(document.getElementById('vatPct').textContent);
-    var vat=round2(subtotal*pct/100);
-    var total=round2(subtotal+vat);
-    document.getElementById('subtotal').textContent = fmt(subtotal);
-    document.getElementById('vatAmt').textContent = fmt(vat);
-    document.getElementById('totalDue').textContent = fmt(total);
-    document.getElementById('words').textContent = amountWords(total);
-    var rate=parseNum(document.getElementById('fxRate').textContent);
-    var ngn=fmt(round2(total*rate));
-    document.getElementById('ngnTotal').textContent = ngn;
-    document.getElementById('ngnEq').textContent = ngn;
-  }
-
-  /* ---- currency mode ---- */
-  function setMode(m){
-    if(m===mode) return;
-    var rate=parseNum(document.getElementById('fxRate').textContent);
-    if(rate>0){
-      body.querySelectorAll('.unit').forEach(function(cell){
-        var u=parseNum(cell.textContent);
-        cell.textContent = fmt(round2(m==='NGN' ? u*rate : u/rate));
-      });
-    }
-    mode=m;
-    var usd = (m==='USD');
-    var bU=document.getElementById('modeUSD'), bN=document.getElementById('modeNGN');
-    bU.classList.toggle('active',usd);  bU.setAttribute('aria-pressed',usd);
-    bN.classList.toggle('active',!usd); bN.setAttribute('aria-pressed',!usd);
-    document.getElementById('curLabel').textContent = usd ? 'US Dollar (USD)' : 'Nigerian Naira (NGN)';
-    document.getElementById('unitHead').textContent = usd ? 'UNIT PRICE (USD)' : 'UNIT PRICE (NGN)';
-    document.getElementById('amtHead').textContent  = usd ? 'AMOUNT (USD)'     : 'AMOUNT (NGN)';
-    document.getElementById('grandLbl').textContent = usd ? 'TOTAL DUE (USD)'  : 'TOTAL DUE (NGN)';
-    document.getElementById('curSym').textContent   = usd ? '$' : '\u20A6';
-    document.getElementById('nairaBox').style.display = usd ? '' : 'none';
-    document.getElementById('ngnEqRow').style.display = usd ? '' : 'none';
-    recalc();
-  }
-  document.getElementById('modeUSD').addEventListener('click', function(){ setMode('USD'); });
-  document.getElementById('modeNGN').addEventListener('click', function(){ setMode('NGN'); });
-
-  /* ---- invoice number sync (top field drives every reference) ---- */
-  var invNo=document.getElementById('invNo');
-  invNo.addEventListener('input', function(){
-    var n=invNo.textContent.trim();
-    document.querySelectorAll('.invno-ref').forEach(function(s){ s.textContent=n; });
-  });
-
-  /* ---- add / remove rows ---- */
-  document.getElementById('addRow').addEventListener('click', function(){
-    var tr=document.createElement('tr');
-    tr.innerHTML =
-      '<td class="sn"></td>'+
-      '<td class="desc" contenteditable="true">New line item</td>'+
-      '<td class="num qty" contenteditable="true">1</td>'+
-      '<td class="num unit" contenteditable="true">0.00</td>'+
-      '<td class="num amt">0.00</td>'+
-      '<td class="c-ctl"><button class="del" title="Remove this line" aria-label="Remove line">&times;</button></td>';
-    body.appendChild(tr);
-    recalc();
-    var d=tr.querySelector('.desc');
-    d.focus();
-    document.getSelection().selectAllChildren(d);
-  });
-
-  body.addEventListener('click', function(e){
-    if(e.target.classList.contains('del')){
-      if(body.querySelectorAll('tr').length>1){
-        e.target.closest('tr').remove();
-        recalc();
-      }
-    }
-  });
-
-  /* ---- live updates + tidy formatting ---- */
-  document.addEventListener('input', function(e){
-    if(e.target.closest('#itemsBody') || e.target.id==='vatPct' || e.target.id==='fxRate') recalc();
-  });
-  document.addEventListener('focusout', function(e){
-    if(e.target.classList && (e.target.classList.contains('unit') || e.target.id==='fxRate')){
-      e.target.textContent = fmt(parseNum(e.target.textContent));
-      recalc();
-    }
-  });
-
-  /* keep single-line fields single-line; paste as plain text */
-  document.addEventListener('keydown', function(e){
-    if(e.key==='Enter' && e.target.isContentEditable && !e.target.classList.contains('desc')){
-      e.preventDefault(); e.target.blur();
-    }
-  });
-  document.addEventListener('paste', function(e){
-    if(e.target.isContentEditable){
-      e.preventDefault();
-      var t=(e.clipboardData||window.clipboardData).getData('text/plain');
-      document.execCommand('insertText', false, t);
-    }
-  });
-
-  /* saved-PDF filename follows the invoice number */
-  window.addEventListener('beforeprint', function(){
-    var n=document.getElementById('invNo').textContent.trim().replace(/[\/\s]+/g,'-');
-    document.title='Invoice '+n+' - Tekktopia Limited';
-  });
-
-  recalc();
-})();
-</script>
+  <!-- Dynamic invoice wrappers are appended here by JS -->
 
 </div><!-- /#invoiceContent -->
 
+<!-- ========== NEW CLIENT MODAL ========== -->
+<div id="modalBg" onclick="if(event.target===this)_hideModal()">
+  <div id="modalCard">
+    <div class="modal-title">Add New Client Invoice</div>
+    <label class="modal-label">Company / Client Name <span class="modal-req">*</span></label>
+    <input class="modal-input" id="m-name" type="text" placeholder="e.g. Acme Corporation" maxlength="80">
+    <label class="modal-label">Short Description (shown on card)</label>
+    <input class="modal-input" id="m-desc" type="text" placeholder="e.g. Web design services · VI, Lagos" maxlength="80">
+    <label class="modal-label">Contact Person</label>
+    <input class="modal-input" id="m-contact" type="text" placeholder="e.g. Finance Department">
+    <label class="modal-label">Address</label>
+    <input class="modal-input" id="m-addr" type="text" placeholder="e.g. 12 Commerce Street, Lagos">
+    <label class="modal-label">Email</label>
+    <input class="modal-input" id="m-email" type="email" placeholder="e.g. billing@client.com">
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="_hideModal()">Cancel</button>
+      <button class="modal-ok" onclick="_submitModal()">Create Invoice</button>
+    </div>
+    <div id="m-err" class="modal-err"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- Firebase SDK v8 compat -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<!-- ========== INVOICE APP ========== -->
 <script>
-/*
- * PIN GATE + ACCESS NOTIFICATIONS
- *
- * PIN rotates every 24 h at 12:00 WAT (11:00 UTC).
- * A GitHub Actions cron job emails the new code to billing@tekktopia.com
- * each day at exactly that time — see .github/workflows/daily-invoice-pin.yml.
- *
- * Access-attempt notifications use formsubmit.co (free, no account needed).
- * FIRST USE: The very first notification triggers an activation email to
- * info@tekktopia.com — click the link in that email once, then notifications
- * flow automatically.
- *
- * IMPORTANT: The value of SECRET below must exactly match the GitHub Actions
- * secret named INVOICE_SECRET in your repository settings.
- */
+(function(){
+'use strict';
+
+/* ---- utilities ---- */
+function _parseNum(t){
+  var v=parseFloat(String(t).replace(/[^0-9.\-]/g,''));
+  return isNaN(v)?0:v;
+}
+function _fmt(v){ return v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function _r2(v){ return Math.round(v*100)/100; }
+function _esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/* ---- number to words ---- */
+var ONES=['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve',
+  'Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
+var TENS=['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+function _three(n){
+  var s='',h=Math.floor(n/100),r=n%100;
+  if(h) s+=ONES[h]+' Hundred';
+  if(r){ s+=h?' and ':''; s+=r<20?ONES[r]:TENS[Math.floor(r/10)]+(r%10?'-'+ONES[r%10]:''); }
+  return s;
+}
+function _intWords(n){
+  if(n===0) return 'Zero';
+  var g=[[1e9,'Billion'],[1e6,'Million'],[1e3,'Thousand'],[1,'']],parts=[],q;
+  for(var i=0;i<g.length;i++){ q=Math.floor(n/g[i][0]); if(q){ parts.push(_three(q)+(g[i][1]?' '+g[i][1]:'')); n%=g[i][0]; } }
+  return parts.join(', ');
+}
+function _amtWords(total,mode){
+  var u=mode==='USD'
+    ?{one:'US Dollar',many:'US Dollars',subOne:'Cent',subMany:'Cents'}
+    :{one:'Naira',many:'Naira',subOne:'Kobo',subMany:'Kobo'};
+  var d=Math.floor(total),c=Math.round((total-d)*100);
+  if(c===100){d++;c=0;}
+  var s=_intWords(d)+' '+(d===1?u.one:u.many);
+  if(c) s+=', '+_intWords(c)+' '+(c===1?u.subOne:u.subMany);
+  return s+' Only.';
+}
+
+/* ---- toast ---- */
+var _toastTimer=null;
+function _toast(msg){
+  var el=document.getElementById('toast');
+  el.textContent=msg;
+  el.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer=setTimeout(function(){ el.classList.remove('show'); },2200);
+}
+
+/* ---- card definitions ---- */
+var BUILTIN=[
+  {id:'netcom',    name:'Netcom Africa',          desc:'Technology solutions · VI, Lagos', icon:'🌐'},
+  {id:'monterosa', name:'Monterosa Constructions', desc:'Construction services',                 icon:'🏗️'}
+];
+var dynCards=[];
+
+/* ---- per-invoice state ---- */
+var _inv={};         // { id: { mode:'USD' } }
+var _opened={};      // which invoices have been set up
+var _currentInv=null;
+var _saveTimers={};
+var _ownSave={};
+var _db=null;
+
+/* ---- expose to onclick attrs ---- */
+window.openInvoice=openInvoice;
+window.backToSelector=backToSelector;
+window._showModal=_showModal;
+window._hideModal=_hideModal;
+window._submitModal=_submitModal;
+
+/* ---- navigation ---- */
+function openInvoice(id,cardData){
+  if(!document.getElementById('inv-'+id)){
+    _createInvWrapper(id,cardData||{name:id,icon:'📄'});
+  }
+  document.getElementById('selScreen').style.display='none';
+  var w=document.getElementById('inv-'+id);
+  if(w) w.style.display='';
+  _currentInv=id;
+
+  if(!_opened[id]){
+    _opened[id]=true;
+    _inv[id]={mode:'USD'};
+    _setupInvoice(id);
+    if(_db){
+      _db.ref('tek/invoices/'+id).once('value',function(sn){
+        var data=sn.val();
+        if(data&&data.v>=1) _applySnap(id,data);
+        else _recalcInv(id);
+        _attachListener(id);
+        _attachObserver(id);
+      });
+    } else {
+      _recalcInv(id);
+    }
+  }
+}
+
+function backToSelector(){
+  document.querySelectorAll('.inv-wrapper').forEach(function(w){ w.style.display='none'; });
+  document.getElementById('selScreen').style.display='';
+  _currentInv=null;
+}
+
+/* ---- render selector cards ---- */
+function _renderCards(){
+  var grid=document.getElementById('selGrid');
+  if(!grid) return;
+  grid.innerHTML='';
+  BUILTIN.concat(dynCards).forEach(function(c){
+    var div=document.createElement('div');
+    div.className='sel-card';
+    div.innerHTML='<div class="sel-icon">'+c.icon+'</div>'+
+      '<div class="sel-name">'+_esc(c.name)+'</div>'+
+      '<div class="sel-desc">'+_esc(c.desc||'')+'</div>';
+    (function(card){ div.addEventListener('click',function(){ openInvoice(card.id,card); }); })(c);
+    grid.appendChild(div);
+  });
+  var addBtn=document.createElement('div');
+  addBtn.className='sel-card sel-add';
+  addBtn.innerHTML='<div class="sel-icon">＋</div><div class="sel-name">Add Client</div><div class="sel-desc">Create a new invoice</div>';
+  addBtn.addEventListener('click',_showModal);
+  grid.appendChild(addBtn);
+}
+
+/* ---- per-invoice setup ---- */
+function _setupInvoice(id){
+  var w=document.getElementById('inv-'+id);
+  if(!w) return;
+  var body=document.getElementById('inv-'+id+'-body');
+
+  var addRowBtn=document.getElementById('inv-'+id+'-addRow');
+  if(addRowBtn){
+    addRowBtn.addEventListener('click',function(){
+      var tr=document.createElement('tr');
+      tr.innerHTML='<td class="sn"></td><td class="desc" contenteditable="true">New line item</td>'+
+        '<td class="num qty" contenteditable="true">1</td>'+
+        '<td class="num unit" contenteditable="true">0.00</td>'+
+        '<td class="num amt">0.00</td>'+
+        '<td class="c-ctl"><button class="del" title="Remove">&times;</button></td>';
+      body.appendChild(tr);
+      _recalcInv(id);
+      var d=tr.querySelector('.desc');
+      d.focus();
+      document.getSelection().selectAllChildren(d);
+    });
+  }
+
+  if(body){
+    body.addEventListener('click',function(e){
+      if(e.target.classList.contains('del')&&body.querySelectorAll('tr').length>1){
+        e.target.closest('tr').remove(); _recalcInv(id);
+      }
+    });
+  }
+
+  w.addEventListener('input',function(e){
+    var inBody=body&&body.contains(e.target);
+    var isVat=e.target.id===('inv-'+id+'-vat');
+    var isFx=e.target.id===('inv-'+id+'-fx');
+    if(inBody||isVat||isFx) _recalcInv(id);
+  });
+
+  w.addEventListener('focusout',function(e){
+    if(e.target.classList.contains('unit')||e.target.id===('inv-'+id+'-fx')){
+      e.target.textContent=_fmt(_parseNum(e.target.textContent)); _recalcInv(id);
+    }
+  });
+
+  var invNoEl=document.getElementById('inv-'+id+'-invNo');
+  if(invNoEl){
+    invNoEl.addEventListener('input',function(){
+      var n=invNoEl.textContent.trim();
+      w.querySelectorAll('.invno-ref').forEach(function(s){ s.textContent=n; });
+    });
+  }
+
+  var mU=document.getElementById('inv-'+id+'-modeUSD');
+  var mN=document.getElementById('inv-'+id+'-modeNGN');
+  if(mU) mU.addEventListener('click',function(){ _setMode(id,'USD'); });
+  if(mN) mN.addEventListener('click',function(){ _setMode(id,'NGN'); });
+
+  w.addEventListener('keydown',function(e){
+    if(e.key==='Enter'&&e.target.isContentEditable&&!e.target.classList.contains('desc')){
+      e.preventDefault(); e.target.blur();
+    }
+  });
+
+  w.addEventListener('paste',function(e){
+    if(e.target.isContentEditable){
+      e.preventDefault();
+      var t=(e.clipboardData||window.clipboardData).getData('text/plain');
+      document.execCommand('insertText',false,t);
+    }
+  });
+
+  _recalcInv(id);
+}
+
+/* ---- per-invoice recalc ---- */
+function _recalcInv(id){
+  var body=document.getElementById('inv-'+id+'-body');
+  if(!body) return;
+  var mode=(_inv[id]&&_inv[id].mode)||'USD';
+  var subtotal=0;
+
+  body.querySelectorAll('tr').forEach(function(tr,i){
+    tr.querySelector('.sn').textContent=i+1;
+    var q=_parseNum(tr.querySelector('.qty').textContent);
+    var u=_parseNum(tr.querySelector('.unit').textContent);
+    var a=_r2(q*u);
+    tr.querySelector('.amt').textContent=_fmt(a);
+    subtotal+=a;
+  });
+  subtotal=_r2(subtotal);
+
+  function g(s){ return document.getElementById('inv-'+id+'-'+s); }
+
+  var vatEl=g('vat');
+  var pct=vatEl?_parseNum(vatEl.textContent):7.5;
+  var vat=_r2(subtotal*pct/100);
+  var total=_r2(subtotal+vat);
+
+  if(g('subtotal')) g('subtotal').textContent=_fmt(subtotal);
+  if(g('vatAmt'))   g('vatAmt').textContent=_fmt(vat);
+  if(g('totalDue')) g('totalDue').textContent=_fmt(total);
+  if(g('words'))    g('words').textContent=total>0?_amtWords(total,mode):'';
+
+  var fxEl=g('fx');
+  var rate=fxEl?_parseNum(fxEl.textContent):0;
+  var ngn=rate>0?_fmt(_r2(total*rate)):'';
+  if(g('ngnTotal')) g('ngnTotal').textContent=ngn;
+  if(g('ngnEq'))    g('ngnEq').textContent=ngn;
+}
+
+/* ---- currency mode ---- */
+function _setMode(id,m){
+  var mode=(_inv[id]&&_inv[id].mode)||'USD';
+  if(m===mode) return;
+  var fxEl=document.getElementById('inv-'+id+'-fx');
+  var rate=fxEl?_parseNum(fxEl.textContent):0;
+  if(rate>0){
+    var body=document.getElementById('inv-'+id+'-body');
+    if(body) body.querySelectorAll('.unit').forEach(function(cell){
+      var u=_parseNum(cell.textContent);
+      cell.textContent=_fmt(_r2(m==='NGN'?u*rate:u/rate));
+    });
+  }
+  if(_inv[id]) _inv[id].mode=m;
+  var usd=(m==='USD');
+
+  function g(s){ return document.getElementById('inv-'+id+'-'+s); }
+  var bU=g('modeUSD'),bN=g('modeNGN');
+  if(bU){ bU.classList.toggle('active',usd); bU.setAttribute('aria-pressed',String(usd)); }
+  if(bN){ bN.classList.toggle('active',!usd); bN.setAttribute('aria-pressed',String(!usd)); }
+
+  if(g('curLabel')) g('curLabel').textContent=usd?'US Dollar (USD)':'Nigerian Naira (NGN)';
+  if(g('unitHead')) g('unitHead').textContent=usd?'UNIT PRICE (USD)':'UNIT PRICE (NGN)';
+  if(g('amtHead'))  g('amtHead').textContent=usd?'AMOUNT (USD)':'AMOUNT (NGN)';
+  if(g('grandLbl')) g('grandLbl').textContent=usd?'TOTAL DUE (USD)':'TOTAL DUE (NGN)';
+  if(g('curSym'))   g('curSym').textContent=usd?'$':'₦';
+  if(g('nairaBox')) g('nairaBox').style.display=usd?'':'none';
+  if(g('ngnEqRow')) g('ngnEqRow').style.display=usd?'':'none';
+
+  _recalcInv(id);
+}
+
+/* ---- snapshot ---- */
+function _snapshotInv(id){
+  var w=document.getElementById('inv-'+id);
+  if(!w) return null;
+  var body=document.getElementById('inv-'+id+'-body');
+  var fields=[];
+  w.querySelectorAll('[contenteditable]').forEach(function(el){
+    if(!body||!body.contains(el)) fields.push(el.innerHTML);
+  });
+  var rows=[];
+  if(body) body.querySelectorAll('tr').forEach(function(tr){ rows.push(tr.innerHTML); });
+  return {v:2, fields:fields, rows:rows, mode:(_inv[id]&&_inv[id].mode)||'USD'};
+}
+
+function _applySnap(id,snap){
+  if(!snap||snap.v<1) return;
+  var w=document.getElementById('inv-'+id);
+  if(!w) return;
+  var body=document.getElementById('inv-'+id+'-body');
+  var fields=[];
+  w.querySelectorAll('[contenteditable]').forEach(function(el){
+    if(!body||!body.contains(el)) fields.push(el);
+  });
+  (snap.fields||[]).forEach(function(html,i){ if(fields[i]) fields[i].innerHTML=html; });
+  if(body&&snap.rows&&snap.rows.length){
+    body.innerHTML='';
+    snap.rows.forEach(function(rowHtml){
+      var tr=document.createElement('tr');
+      tr.innerHTML=rowHtml;
+      body.appendChild(tr);
+    });
+  }
+  if(_inv[id]) _inv[id].mode=snap.mode||'USD';
+  _setMode(id,snap.mode||'USD');
+  _recalcInv(id);
+}
+
+/* ---- Firebase ---- */
+function _initFirebase(){
+  try{
+    firebase.initializeApp({
+      apiKey:'AIzaSyBTxMesPeQ0BHsLRSvrJ2lchwXwzwqFjgM',
+      databaseURL:'https://probethel-invoicing-default-rtdb.firebaseio.com',
+      projectId:'probethel-invoicing',
+      appId:'1:23592597106:web:f0f55be28b2c48820a34eb'
+    });
+    _db=firebase.database();
+    _db.ref('tek/cards').once('value',function(sn){
+      var data=sn.val();
+      if(data&&Array.isArray(data)) dynCards=data;
+      _renderCards();
+    });
+  } catch(e){
+    console.warn('Firebase init error:',e);
+    _renderCards();
+  }
+}
+
+function _saveCards(){
+  if(!_db) return;
+  _db.ref('tek/cards').set(dynCards).catch(function(e){ console.error(e); });
+}
+
+function _saveInvoice(id){
+  if(!_db) return;
+  var snap=_snapshotInv(id);
+  if(!snap) return;
+  _ownSave[id]=true;
+  _db.ref('tek/invoices/'+id).set(snap)
+    .then(function(){ _toast('✓ Saved to cloud'); })
+    .catch(function(e){ _toast('⚠ Save error'); console.error(e); });
+}
+
+function _attachListener(id){
+  var first=true;
+  _db.ref('tek/invoices/'+id).on('value',function(sn){
+    if(first){ first=false; return; }
+    if(_ownSave[id]){ _ownSave[id]=false; return; }
+    var data=sn.val();
+    if(!data||data.v<1) return;
+    _applySnap(id,data);
+  });
+}
+
+function _attachObserver(id){
+  var w=document.getElementById('inv-'+id);
+  if(!w) return;
+  var mo=new MutationObserver(function(){
+    clearTimeout(_saveTimers[id]);
+    _saveTimers[id]=setTimeout(function(){ _saveInvoice(id); },5000);
+  });
+  mo.observe(w,{childList:true,subtree:true,characterData:true});
+}
+
+/* ---- dynamic invoice creation ---- */
+function _slugify(name){
+  return 'dyn_'+name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,20)+'_'+Date.now().toString(36);
+}
+
+function _createInvWrapper(id,cardData){
+  var div=document.createElement('div');
+  div.id='inv-'+id;
+  div.className='inv-wrapper';
+  div.style.display='none';
+  div.innerHTML=_buildInvContent(id,cardData);
+  document.getElementById('invoiceContent').appendChild(div);
+}
+
+function _buildInvContent(id,opts){
+  var name=opts.name||'New Client';
+  var contact=opts.contact||'';
+  var addr=opts.addr||'';
+  var email=opts.email||'';
+  var invno='TEK/LD/2026/001';
+
+  function eid(s){ return 'id="inv-'+id+'-'+s+'"'; }
+  var CE='contenteditable="true"';
+  var h='';
+
+  h+='<div class="toolbar">';
+  h+='<div style="display:flex;align-items:center;gap:12px;">';
+  h+='<button class="btn-back" onclick="backToSelector()">&#8592; Back</button>';
+  h+='<span class="hint-text">Click any text to edit &mdash; changes auto-save</span></div>';
+  h+='<div class="tools"><div class="seg" role="group">';
+  h+='<button type="button" class="segbtn active" '+eid('modeUSD')+' aria-pressed="true">USD&nbsp;$</button>';
+  h+='<button type="button" class="segbtn" '+eid('modeNGN')+' aria-pressed="false">NGN&nbsp;&#8358;</button>';
+  h+='</div><button class="btn" onclick="window.print()">Download PDF</button></div></div>';
+
+  h+='<div class="page">';
+  h+='<div class="lh"><div class="brand"><img src="assets/tekktopia-logo.png" alt="Tekktopia logo">';
+  h+='<div><div class="name" '+CE+'>TEKKTOPIA LIMITED</div>';
+  h+='<div class="tag" '+CE+'>Information Technology Services</div></div></div>';
+  h+='<div class="co">';
+  h+='<div '+CE+'>43 Baale Street, Igbo-Efon, Lekki, Lagos, Nigeria</div>';
+  h+='<div '+CE+'>+234 815 433 2992&nbsp;&nbsp;|&nbsp;&nbsp;billing@tekktopia.com</div>';
+  h+='<div '+CE+'>www.tekktopia.com</div>';
+  h+='<div '+CE+'>RC 7466800&nbsp;&nbsp;|&nbsp;&nbsp;TIN 31661991-0001</div>';
+  h+='</div></div><div class="rule"></div>';
+
+  h+='<div class="titlebar"><h1>INVOICE</h1><div class="meta">';
+  h+='<div class="row"><span class="k">Invoice No.</span><span class="v" '+eid('invNo')+' '+CE+'>'+_esc(invno)+'</span></div>';
+  h+='<div class="row"><span class="k">Invoice Date</span><span class="v" '+CE+'></span></div>';
+  h+='<div class="row"><span class="k">Payment Terms</span><span class="v" '+CE+'>Net 10 days</span></div>';
+  h+='<div class="row"><span class="k">Due Date</span><span class="v" '+CE+'></span></div>';
+  h+='<div class="row"><span class="k">Currency</span><span class="v" '+eid('curLabel')+' '+CE+'>US Dollar (USD)</span></div>';
+  h+='</div></div>';
+
+  h+='<div class="billto"><div class="lbl">BILL TO</div>';
+  h+='<div class="n" '+CE+'>'+_esc(name)+'</div>';
+  h+='<div '+CE+'>'+_esc(contact)+'</div>';
+  h+='<div class="sub" '+CE+'>'+_esc(addr)+'</div>';
+  h+='<div class="sub" '+CE+'></div>';
+  h+='<div class="sub" '+CE+'>'+_esc(email)+'</div></div>';
+
+  h+='<table><thead><tr><th class="c-sn">S/N</th><th>DESCRIPTION</th>';
+  h+='<th class="c-qty num">QTY</th>';
+  h+='<th class="c-unit num" '+eid('unitHead')+'>UNIT PRICE (USD)</th>';
+  h+='<th class="c-amt num" '+eid('amtHead')+'>AMOUNT (USD)</th>';
+  h+='<th class="c-ctl"></th></tr></thead>';
+  h+='<tbody '+eid('body')+'>';
+  h+='<tr><td class="sn">1</td><td class="desc" '+CE+'>Professional Services</td>';
+  h+='<td class="num qty" '+CE+'>1</td><td class="num unit" '+CE+'>0.00</td>';
+  h+='<td class="num amt">0.00</td>';
+  h+='<td class="c-ctl"><button class="del" title="Remove">&times;</button></td></tr>';
+  h+='</tbody></table>';
+  h+='<button class="addrow" '+eid('addRow')+'>+ Add line item</button>';
+
+  h+='<div class="below"><div class="words"><div class="lb">Amount in words:</div>';
+  h+='<div class="tx" '+eid('words')+'></div></div>';
+  h+='<div class="totals">';
+  h+='<div class="row"><span class="k">Subtotal</span><span class="v" '+eid('subtotal')+'></span></div>';
+  h+='<div class="row"><span class="k">VAT (<span '+eid('vat')+' '+CE+'>7.5</span>%)</span><span class="v" '+eid('vatAmt')+'></span></div>';
+  h+='<div class="row grand"><span class="k" '+eid('grandLbl')+'>TOTAL DUE (USD)</span>';
+  h+='<span class="v"><span '+eid('curSym')+'>$</span><span '+eid('totalDue')+'></span></span></div>';
+  h+='<div class="row ngneq" '+eid('ngnEqRow')+'><span class="k">Naira equivalent</span>';
+  h+='<span class="v">NGN <span '+eid('ngnEq')+'></span></span></div></div></div>';
+
+  h+='<div class="naira" '+eid('nairaBox')+'>';
+  h+='<div class="lbl">NAIRA PAYMENT OPTION</div>';
+  h+='<div>Exchange rate reference:&nbsp; US$1.00 = NGN <span '+eid('fx')+' '+CE+'>1,407.00</span>&nbsp; (<span '+CE+'>indicative market rate</span>).</div>';
+  h+='<div class="l2">Naira equivalent of total due:&nbsp; NGN <span '+eid('ngnTotal')+'></span>.</div></div>';
+
+  h+='<div class="bankdetails"><div class="lbl">BANK DETAILS</div><table>';
+  h+='<tr><td>Bank Name</td><td '+CE+'>Globus Bank</td></tr>';
+  h+='<tr><td>Account Name</td><td '+CE+'>Tekktopia Limited</td></tr>';
+  h+='<tr><td>Account Number</td><td class="acct-num" '+CE+'>1000355310</td></tr>';
+  h+='</table></div>';
+
+  h+='<div class="payinfo"><div class="lbl">PAYMENT INFORMATION</div>';
+  h+='<div '+CE+'>Payment is due within 10 days of the invoice date.</div>';
+  h+='<div '+CE+'>Kindly send proof of payment to billing@tekktopia.com, quoting invoice number <span class="invno-ref">'+_esc(invno)+'</span>.</div>';
+  h+='<div '+CE+'>Please direct all enquiries to your account manager or billing@tekktopia.com.</div></div>';
+
+  h+='<div class="am"><div class="lbl">ACCOUNT MANAGER</div>';
+  h+='<div class="n" '+CE+'>Boluwatife Oni</div>';
+  h+='<div class="c" '+CE+'>boluwatifeo@tekktopia.com&nbsp;&nbsp;|&nbsp;&nbsp;+234 903 659 9775</div></div>';
+
+  h+='<div class="foot"><div class="thanks" '+CE+'>Thank you for your business.</div>';
+  h+='<div class="reg" '+CE+'>Tekktopia Limited&nbsp; |&nbsp; RC 7466800&nbsp; |&nbsp; TIN 31661991-0001&nbsp; |&nbsp; www.tekktopia.com</div></div>';
+
+  h+='</div>';
+  return h;
+}
+
+/* ---- modal ---- */
+function _showModal(){
+  var bg=document.getElementById('modalBg');
+  bg.style.display='flex';
+  ['m-name','m-desc','m-contact','m-addr','m-email'].forEach(function(id){ document.getElementById(id).value=''; });
+  document.getElementById('m-err').textContent='';
+  document.getElementById('m-name').focus();
+}
+
+function _hideModal(){
+  document.getElementById('modalBg').style.display='none';
+}
+
+function _submitModal(){
+  var name=document.getElementById('m-name').value.trim();
+  if(!name){ document.getElementById('m-err').textContent='Company name is required.'; document.getElementById('m-name').focus(); return; }
+  var id=_slugify(name);
+  var card={
+    id:id, name:name,
+    desc:document.getElementById('m-desc').value.trim()||'',
+    icon:'📄',
+    contact:document.getElementById('m-contact').value.trim(),
+    addr:document.getElementById('m-addr').value.trim(),
+    email:document.getElementById('m-email').value.trim()
+  };
+  dynCards.push(card);
+  _saveCards();
+  _renderCards();
+  _hideModal();
+  openInvoice(id,card);
+}
+
+/* ---- modal keyboard ---- */
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'&&document.getElementById('modalBg').style.display==='flex') _hideModal();
+  if(e.key==='Enter'&&document.getElementById('modalBg').style.display==='flex'){
+    var active=document.activeElement;
+    if(active&&active.classList.contains('modal-input')) _submitModal();
+  }
+});
+
+/* ---- print title ---- */
+window.addEventListener('beforeprint',function(){
+  if(!_currentInv) return;
+  var el=document.getElementById('inv-'+_currentInv+'-invNo');
+  if(!el) return;
+  document.title='Invoice '+el.textContent.trim().replace(/[\/\s]+/g,'-')+' - Tekktopia Limited';
+});
+
+/* ---- init ---- */
+_renderCards(); // immediate render with BUILTIN cards
+if(window.firebase) _initFirebase(); // re-renders after loading dynamic cards from Firebase
+
+})();
+</script>
+
+<!-- ========== PIN GATE ========== -->
+<script>
 (function(){
   'use strict';
 
-  // Must match the INVOICE_SECRET value in GitHub → Settings → Secrets
-  var SECRET        = 'a7f3c91e5b204d68a1f0c3e29b7d4582';
-  var MAX_ATTEMPTS  = 10;
-  var LOCK_MINUTES  = 5;
-  var NOTIFY_EMAIL  = 'billing@tekktopia.com';
+  var SECRET       = 'a7f3c91e5b204d68a1f0c3e29b7d4582';
+  var MAX_ATTEMPTS = 10;
+  var LOCK_MINUTES = 5;
+  var NOTIFY_EMAIL = 'billing@tekktopia.com';
 
   var failCount = 0;
   var isLocked  = false;
@@ -720,13 +1250,11 @@
 
   function showErr(msg){ errEl.textContent = msg; }
 
-  // Derives the current valid 4-digit PIN using HMAC-SHA256 over today's 24h window.
-  // Window boundary: 11:00 UTC = 12:00 WAT.  Identical logic runs in the GitHub Action.
   function getValidPin(){
-    var WINDOW_MS  = 24 * 60 * 60 * 1000;
-    var OFFSET_MS  = 11 * 60 * 60 * 1000; // shift so window starts at 11 UTC
-    var windowNum  = Math.floor((Date.now() - OFFSET_MS) / WINDOW_MS);
-    var enc        = new TextEncoder();
+    var WINDOW_MS = 24*60*60*1000;
+    var OFFSET_MS = 11*60*60*1000;
+    var windowNum = Math.floor((Date.now()-OFFSET_MS)/WINDOW_MS);
+    var enc = new TextEncoder();
     return crypto.subtle.importKey(
       'raw', enc.encode(SECRET),
       {name:'HMAC', hash:'SHA-256'},
@@ -765,7 +1293,6 @@
         failCount++;
         notify(false, failCount);
         digits.forEach(function(d){ d.classList.add('pinD-err'); });
-
         if(failCount >= MAX_ATTEMPTS){
           isLocked = true;
           btn.disabled = true;
@@ -803,15 +1330,15 @@
       hour:'2-digit', minute:'2-digit', second:'2-digit'
     });
     var subject = success
-      ? 'INVOICE ACCESSED — TEK-LD-2026-007'
-      : 'FAILED PIN ATTEMPT #' + failsSoFar + ' — TEK-LD-2026-007';
+      ? 'INVOICE PORTAL ACCESSED — Tekktopia'
+      : 'FAILED PIN ATTEMPT #' + failsSoFar + ' — Tekktopia Invoice Portal';
     var body = success
-      ? 'Invoice TEK-LD-2026-007 (Netcom Africa) was successfully accessed.\n\n'
+      ? 'Tekktopia Invoice Portal was successfully accessed.\n\n'
         + 'Time (WAT): ' + now + '\n'
         + 'Failed attempts before success: ' + failsSoFar + '\n'
         + 'Browser: ' + navigator.userAgent + '\n'
         + 'Referrer: ' + (document.referrer || 'Direct')
-      : 'Failed PIN entry on Invoice TEK-LD-2026-007 (Netcom Africa).\n\n'
+      : 'Failed PIN entry on Tekktopia Invoice Portal.\n\n'
         + 'Attempt: #' + failsSoFar + ' of ' + MAX_ATTEMPTS + '\n'
         + 'Time (WAT): ' + now + '\n'
         + 'Browser: ' + navigator.userAgent + '\n'
@@ -821,21 +1348,19 @@
       method:'POST',
       headers:{'Content-Type':'application/json','Accept':'application/json'},
       body: JSON.stringify({
-        name: 'Tekktopia Invoice System',
-        email: 'noreply@tekktopia.com',
-        message: body,
-        _subject: subject,
-        _captcha: 'false',
-        _template: 'basic'
+        name:'Tekktopia Invoice System',
+        email:'noreply@tekktopia.com',
+        message:body,
+        _subject:subject,
+        _captcha:'false',
+        _template:'basic'
       })
     }).catch(function(){});
   }
 
 })();
 </script>
+
 <footer id="siteFooter">Built by <a href="https://danieloshinubi.online" target="_blank" rel="noopener noreferrer">Daniel Oshinubi</a>, Powered by <a href="https://www.tekktopia.com" target="_blank" rel="noopener noreferrer">Tekktopia Limited</a></footer>
 </body>
 </html>
-
-
-
