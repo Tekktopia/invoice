@@ -107,8 +107,32 @@
   /* ---------- page ---------- */
   .page{
     width:210mm; min-height:297mm; margin:0 auto 32px;
-    background:#fff; box-shadow:0 2px 14px rgba(0,0,0,.14);
+    /* Repeating gradient draws a subtle page-break line at every 297mm automatically */
+    background:
+      repeating-linear-gradient(
+        to bottom,
+        transparent calc(297mm - 1px),
+        rgba(192,57,43,.16) calc(297mm - 1px),
+        rgba(192,57,43,.16) 297mm,
+        transparent 297mm
+      ),
+      #fff;
+    box-shadow:0 2px 14px rgba(0,0,0,.14);
     padding:16mm 18mm 14mm; position:relative; display:flex; flex-direction:column;
+  }
+
+  /* Page-number badges injected by JS at each 297mm boundary */
+  .pg-brk{
+    position:absolute; left:0; right:0; height:0;
+    pointer-events:none; z-index:4;
+  }
+  .pg-brk-lbl{
+    position:absolute; left:50%;
+    transform:translateX(-50%) translateY(-50%);
+    background:rgba(255,255,255,.96); color:rgba(192,57,43,.65);
+    font-size:9px; font-weight:700; letter-spacing:.07em;
+    padding:2px 10px; border:1px solid rgba(192,57,43,.22); border-radius:10px;
+    white-space:nowrap;
   }
 
   /* ---------- editing affordances ---------- */
@@ -415,8 +439,31 @@
   @page{size:A4; margin:0;}
   @media print{
     body{background:#fff;}
-    .toolbar,.addrow,.c-ctl,.del,#selScreen,#modalBg,#confirmBg,#toast,#siteFooter{display:none !important;}
-    .page{box-shadow:none; margin:0; width:210mm; min-height:297mm;}
+    .toolbar,.addrow,.c-ctl,.del,.pg-brk,
+    #selScreen,#modalBg,#confirmBg,#toast,#siteFooter{display:none !important;}
+
+    /* Clean white page — no gradient, no shadow */
+    .page{
+      background:#fff; box-shadow:none; margin:0;
+      width:210mm; min-height:unset; height:auto;
+      /* Switch off flex so CSS break properties work reliably */
+      display:block;
+    }
+
+    /* Table header repeats on every continuation page */
+    thead{ display:table-header-group; }
+    /* Keep rows together; never split a row across pages */
+    tbody tr{ break-inside:avoid; page-break-inside:avoid; }
+
+    /* Keep these sections intact — no mid-section page breaks */
+    .billto, .below, .naira, .bankdetails, .payinfo, .am, .foot{
+      break-inside:avoid; page-break-inside:avoid;
+    }
+    /* Avoid a break immediately after the table header */
+    thead{ break-after:avoid; }
+    /* Don't break right before the totals block */
+    .addrow{ break-after:avoid; page-break-after:avoid; }
+
     [contenteditable]:hover,[contenteditable]:focus{box-shadow:none; background:transparent;}
   }
 
@@ -1100,7 +1147,32 @@ function _setupInvoice(id){
   if(mU) mU.addEventListener('click',function(){ _pushUndoDirect(id); _setMode(id,'USD'); });
   if(mN) mN.addEventListener('click',function(){ _pushUndoDirect(id); _setMode(id,'NGN'); });
 
+  /* ResizeObserver catches height changes from typing / text reflow */
+  if(window.ResizeObserver){
+    var pgEl=document.querySelector('#inv-'+id+' .page');
+    if(pgEl) new ResizeObserver(function(){ _updatePageBreaks(id); }).observe(pgEl);
+  }
+
   _recalcInv(id);
+}
+
+/* ---- page-break badges ---- */
+var PG_PX = 297 * 96 / 25.4; // 297 mm in CSS pixels (browser standard: 96dpi)
+
+function _updatePageBreaks(id){
+  var page = document.querySelector('#inv-' + id + ' .page');
+  if(!page) return;
+  page.querySelectorAll('.pg-brk').forEach(function(el){ el.remove(); });
+  var h = page.scrollHeight;
+  if(h <= PG_PX * 1.01) return; // within first page — nothing to show
+  var total = Math.ceil(h / PG_PX);
+  for(var i = 2; i <= total; i++){
+    var div = document.createElement('div');
+    div.className = 'pg-brk';
+    div.style.top = ((i - 1) * PG_PX) + 'px';
+    div.innerHTML = '<span class="pg-brk-lbl">&#9135; PAGE ' + i + ' &#9135;</span>';
+    page.appendChild(div);
+  }
 }
 
 /* ---- per-invoice recalc ---- */
@@ -1136,6 +1208,7 @@ function _recalcInv(id){
   var ngn=rate>0?_fmt(_r2(total*rate)):'';
   if(g('ngnTotal')) g('ngnTotal').textContent=ngn;
   if(g('ngnEq'))    g('ngnEq').textContent=ngn;
+  _updatePageBreaks(id);
 }
 
 /* ---- currency mode ---- */
@@ -1199,6 +1272,7 @@ function _applySnap(id,snap){
   if(_inv[id]) _inv[id].mode=snap.mode||'USD';
   _setMode(id,snap.mode||'USD');
   _recalcInv(id);
+  _updatePageBreaks(id);
 }
 
 /* ---- Firebase ---- */
