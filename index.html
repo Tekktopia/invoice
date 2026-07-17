@@ -464,6 +464,17 @@
     /* Don't break right before the totals block */
     .addrow{ break-after:avoid; page-break-after:avoid; }
 
+    /* Footer repeats on every printed page via position:fixed */
+    .foot{
+      position:fixed; bottom:0; left:0; right:0;
+      padding:7px 18mm 8mm;
+      border-top:.7px solid #C9CED4;
+      background:#fff;
+      margin-top:0;
+    }
+    /* Push page content up so it never hides under the fixed footer */
+    .page{ padding-bottom:20mm; }
+
     [contenteditable]:hover,[contenteditable]:focus{box-shadow:none; background:transparent;}
   }
 
@@ -528,6 +539,7 @@
       <div class="toolbar-left">
         <button class="btn-back" onclick="backToSelector()">&#8592; Back</button>
         <button class="btn-undo" id="inv-netcom-undoBtn" onclick="_undo('netcom')" disabled title="Undo (Ctrl+Z)">&#8617;&nbsp;Undo</button>
+        <button class="btn-undo" id="inv-netcom-redoBtn" onclick="_redo('netcom')" disabled title="Redo (Ctrl+Y)">&#8618;&nbsp;Redo</button>
         <span class="hint-text">Click any text to edit &mdash; auto-saves to cloud</span>
       </div>
       <div class="tools">
@@ -661,6 +673,7 @@
       <div class="toolbar-left">
         <button class="btn-back" onclick="backToSelector()">&#8592; Back</button>
         <button class="btn-undo" id="inv-monterosa-undoBtn" onclick="_undo('monterosa')" disabled title="Undo (Ctrl+Z)">&#8617;&nbsp;Undo</button>
+        <button class="btn-undo" id="inv-monterosa-redoBtn" onclick="_redo('monterosa')" disabled title="Redo (Ctrl+Y)">&#8618;&nbsp;Redo</button>
         <span class="hint-text">Click any text to edit &mdash; auto-saves to cloud</span>
       </div>
       <div class="tools">
@@ -911,8 +924,9 @@ var _saveTimers={};
 var _ownSave={};
 var _db=null;
 
-/* ---- undo stacks ---- */
+/* ---- undo / redo stacks ---- */
 var _undoStacks={};
+var _redoStacks={};
 var _preFocusSnap={};
 
 function _capturePreFocus(id){
@@ -928,7 +942,10 @@ function _pushUndo(id){
   stack.push(pre);
   if(stack.length>40) stack.shift();
   _preFocusSnap[id]=null;
+  /* Any new edit clears the redo future */
+  _redoStacks[id]=[];
   _updateUndoBtn(id);
+  _updateRedoBtn(id);
 }
 function _pushUndoDirect(id){
   var snap=_snapshotInv(id);
@@ -938,18 +955,44 @@ function _pushUndoDirect(id){
   if(top&&JSON.stringify(top)===JSON.stringify(snap)) return;
   stack.push(snap);
   if(stack.length>40) stack.shift();
+  /* Any new edit clears the redo future */
+  _redoStacks[id]=[];
   _updateUndoBtn(id);
+  _updateRedoBtn(id);
 }
 function _undo(id){
   if(!_undoStacks[id]||!_undoStacks[id].length){ _toast('Nothing to undo'); return; }
+  /* Save current state so redo can restore it */
+  var current=_snapshotInv(id);
+  if(!_redoStacks[id]) _redoStacks[id]=[];
+  _redoStacks[id].push(current);
+  if(_redoStacks[id].length>40) _redoStacks[id].shift();
   var prev=_undoStacks[id].pop();
   _applySnap(id,prev);
   _updateUndoBtn(id);
+  _updateRedoBtn(id);
   _toast('✓ Undone');
+}
+function _redo(id){
+  if(!_redoStacks[id]||!_redoStacks[id].length){ _toast('Nothing to redo'); return; }
+  /* Save current state so undo can return to it */
+  var current=_snapshotInv(id);
+  if(!_undoStacks[id]) _undoStacks[id]=[];
+  _undoStacks[id].push(current);
+  if(_undoStacks[id].length>40) _undoStacks[id].shift();
+  var next=_redoStacks[id].pop();
+  _applySnap(id,next);
+  _updateUndoBtn(id);
+  _updateRedoBtn(id);
+  _toast('✓ Redone');
 }
 function _updateUndoBtn(id){
   var btn=document.getElementById('inv-'+id+'-undoBtn');
   if(btn) btn.disabled=!(_undoStacks[id]&&_undoStacks[id].length>0);
+}
+function _updateRedoBtn(id){
+  var btn=document.getElementById('inv-'+id+'-redoBtn');
+  if(btn) btn.disabled=!(_redoStacks[id]&&_redoStacks[id].length>0);
 }
 
 /* ---- expose to global scope (for inline onclick attrs) ---- */
@@ -959,6 +1002,7 @@ window._showModal=_showModal;
 window._hideModal=_hideModal;
 window._submitModal=_submitModal;
 window._undo=_undo;
+window._redo=_redo;
 window._editCard=_editCard;
 window._deleteCard=_deleteCard;
 window._triggerLogoSearch=_triggerLogoSearch;
@@ -1111,12 +1155,13 @@ function _setupInvoice(id){
     if(e.target.isContentEditable) _capturePreFocus(id);
   });
 
-  /* Ctrl+Z / Cmd+Z for undo */
+  /* Ctrl+Z / Cmd+Z → undo;  Ctrl+Y or Ctrl+Shift+Z / Cmd+Shift+Z → redo */
   w.addEventListener('keydown',function(e){
     if((e.ctrlKey||e.metaKey)&&e.key==='z'&&!e.shiftKey){
-      e.preventDefault();
-      _undo(id);
-      return;
+      e.preventDefault(); _undo(id); return;
+    }
+    if((e.ctrlKey||e.metaKey)&&(e.key==='y'||(e.key==='z'&&e.shiftKey))){
+      e.preventDefault(); _redo(id); return;
     }
     if(e.key==='Enter'&&e.target.isContentEditable&&!e.target.classList.contains('desc')){
       e.preventDefault(); e.target.blur();
@@ -1375,6 +1420,7 @@ function _buildInvContent(id,opts){
   h+='<div class="toolbar"><div class="toolbar-left">';
   h+='<button class="btn-back" onclick="backToSelector()">&#8592; Back</button>';
   h+='<button class="btn-undo" '+eid('undoBtn')+' onclick="_undo(\''+id+'\')" disabled title="Undo (Ctrl+Z)">&#8617;&nbsp;Undo</button>';
+  h+='<button class="btn-undo" '+eid('redoBtn')+' onclick="_redo(\''+id+'\')" disabled title="Redo (Ctrl+Y)">&#8618;&nbsp;Redo</button>';
   h+='<span class="hint-text">Click any text to edit &mdash; auto-saves to cloud</span></div>';
   h+='<div class="tools"><div class="seg" role="group">';
   h+='<button type="button" class="segbtn active" '+eid('modeUSD')+' aria-pressed="true">USD&nbsp;$</button>';
