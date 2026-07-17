@@ -35,9 +35,11 @@
   .sel-grid{
     display:grid; grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); gap:14px;
   }
+
+  /* --- cards --- */
   .sel-card{
-    background:#fff; border-radius:5px; padding:24px 14px;
-    text-align:center; cursor:pointer;
+    background:#fff; border-radius:5px; padding:24px 14px 18px;
+    text-align:center; cursor:pointer; position:relative;
     box-shadow:0 1px 6px rgba(0,0,0,.08);
     border:1.5px solid transparent;
     transition:box-shadow .15s, transform .12s, border-color .12s;
@@ -46,19 +48,39 @@
     box-shadow:0 4px 20px rgba(0,0,0,.14);
     transform:translateY(-2px); border-color:var(--blue);
   }
-  .sel-icon{font-size:34px; margin-bottom:11px; line-height:1;}
+  .sel-icon-wrap{height:52px; display:flex; align-items:center; justify-content:center; margin-bottom:11px;}
+  .sel-icon{font-size:34px; line-height:1;}
+  .sel-card-logo{width:52px; height:52px; object-fit:contain; display:block;}
   .sel-name{font-weight:700; font-size:13.5px; margin-bottom:4px;}
   .sel-desc{font-size:11px; color:var(--gray); line-height:1.4;}
-  .sel-add{border:2px dashed var(--line); background:transparent; box-shadow:none;}
+  .sel-add{border:2px dashed var(--line); background:transparent; box-shadow:none; padding:24px 14px;}
   .sel-add .sel-icon{color:var(--blue);}
   .sel-add .sel-name{color:var(--blue);}
   .sel-add:hover{border-color:var(--blue); box-shadow:none; transform:none; background:rgba(27,117,188,.04);}
 
+  /* card action buttons (edit / delete) */
+  .sel-card-actions{
+    position:absolute; top:6px; right:6px;
+    display:flex; gap:3px; opacity:0; transition:opacity .15s; pointer-events:none;
+  }
+  .sel-card:hover .sel-card-actions,
+  .sel-card:focus-within .sel-card-actions{ opacity:1; pointer-events:all; }
+  .sel-act{
+    font:inherit; font-size:11px; padding:3px 7px;
+    background:rgba(255,255,255,.96); color:var(--gray);
+    border:1px solid var(--line); border-radius:3px; cursor:pointer;
+    box-shadow:0 1px 4px rgba(0,0,0,.12); white-space:nowrap;
+  }
+  .sel-act:hover{ color:var(--ink); border-color:var(--gray); }
+  .sel-act.del-act:hover{ color:#C0392B; border-color:#C0392B; background:#FFF5F5; }
+  @media(hover:none){ .sel-card-actions{ opacity:1; pointer-events:all; } }
+
   /* ---------- toolbar ---------- */
   .toolbar{
     max-width:210mm; margin:18px auto 12px; padding:0 4px;
-    display:flex; align-items:center; justify-content:space-between; gap:16px;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
   }
+  .toolbar-left{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
   .toolbar .hint-text{color:var(--gray); font-size:12px;}
   .btn{
     font:inherit; font-weight:700; font-size:13px; letter-spacing:.02em;
@@ -69,10 +91,18 @@
   .btn:focus-visible{outline:2px solid var(--blue); outline-offset:2px;}
   .btn-back{
     background:#fff; color:var(--ink); border:1.5px solid var(--line2);
-    font-weight:700; font-size:13px; letter-spacing:.02em;
-    padding:8px 16px; border-radius:3px; cursor:pointer;
+    font:inherit; font-weight:700; font-size:13px;
+    padding:7px 14px; border-radius:3px; cursor:pointer; white-space:nowrap;
   }
   .btn-back:hover{background:var(--bg);}
+  .btn-undo{
+    font:inherit; font-size:12.5px; font-weight:700;
+    background:#fff; color:var(--ink);
+    border:1.5px solid var(--line2); border-radius:3px;
+    padding:7px 13px; cursor:pointer; white-space:nowrap; transition:opacity .12s;
+  }
+  .btn-undo:hover:not(:disabled){background:var(--bg);}
+  .btn-undo:disabled{color:var(--faint); border-color:var(--line); cursor:not-allowed; opacity:.7;}
 
   /* ---------- page ---------- */
   .page{
@@ -196,7 +226,7 @@
   /* ---------- currency switch ---------- */
   .tools{display:flex; align-items:center; gap:10px;}
   .seg{display:flex; border:1px solid var(--line2); border-radius:3px; overflow:hidden; background:#fff;}
-  .segbtn{font:inherit; font-size:12.5px; font-weight:700; padding:8px 14px; border:none;
+  .segbtn{font:inherit; font-size:12.5px; font-weight:700; padding:7px 13px; border:none;
     background:transparent; color:var(--gray); cursor:pointer;}
   .segbtn.active{background:var(--ink); color:#fff;}
   .segbtn:not(.active):hover{color:var(--ink);}
@@ -247,7 +277,8 @@
   }
   #modalCard{
     background:#fff; border-radius:6px; padding:32px 36px;
-    max-width:440px; width:100%; box-shadow:0 8px 40px rgba(0,0,0,.28);
+    max-width:460px; width:100%; box-shadow:0 8px 40px rgba(0,0,0,.28);
+    max-height:90vh; overflow-y:auto;
   }
   .modal-title{font-size:17px; font-weight:700; letter-spacing:.04em; margin-bottom:18px;}
   .modal-label{
@@ -261,6 +292,43 @@
     border:1.5px solid var(--line); border-radius:3px; outline:none; color:var(--ink);
   }
   .modal-input:focus{border-color:var(--blue);}
+
+  /* logo search area */
+  .m-name-wrap{position:relative;}
+  #m-suggestions{
+    display:none; position:absolute; top:100%; left:0; right:0; z-index:200;
+    background:#fff; border:1.5px solid var(--blue); border-top:none;
+    border-radius:0 0 4px 4px; max-height:220px; overflow-y:auto;
+    box-shadow:0 6px 20px rgba(0,0,0,.18);
+  }
+  .m-sug-item{
+    display:flex; align-items:center; gap:10px; padding:9px 12px; cursor:pointer;
+    border-bottom:1px solid var(--bg);
+  }
+  .m-sug-item:hover{background:var(--bg);}
+  .m-sug-item:last-child{border-bottom:none;}
+  .m-sug-logo{width:28px; height:28px; object-fit:contain; flex-shrink:0; border-radius:3px;}
+  .m-sug-name{font-weight:700; font-size:13px;}
+  .m-sug-domain{font-size:11px; color:var(--gray);}
+
+  .m-logo-row{display:flex; align-items:center; gap:12px; margin-top:10px;}
+  #m-logo-preview{
+    width:56px; height:56px; flex-shrink:0;
+    border:1.5px solid var(--line); border-radius:5px; background:var(--bg);
+    display:flex; align-items:center; justify-content:center;
+    font-size:26px; overflow:hidden;
+  }
+  #m-logo-preview img{width:100%; height:100%; object-fit:contain; display:block;}
+  .m-logo-info{flex:1; font-size:12px;}
+  .m-logo-status{color:var(--gray); margin-bottom:5px; min-height:16px;}
+  .btn-find-logo{
+    font:inherit; font-size:12px; padding:5px 11px;
+    border:1.5px solid var(--blue); border-radius:3px;
+    color:var(--blue); background:#fff; cursor:pointer; white-space:nowrap;
+  }
+  .btn-find-logo:hover{background:#EBF4FF;}
+  .btn-find-logo:disabled{opacity:.5; cursor:not-allowed;}
+
   .modal-actions{display:flex; gap:10px; justify-content:flex-end; margin-top:22px;}
   .modal-cancel{
     font:inherit; font-size:13px; padding:9px 20px;
@@ -275,6 +343,29 @@
   .modal-ok:hover{background:#155e99;}
   .modal-err{font-size:12px; color:#C0392B; margin-top:8px; min-height:18px; font-weight:600;}
 
+  /* confirm dialog */
+  #confirmBg{
+    position:fixed; inset:0; background:rgba(0,0,0,.55);
+    z-index:9000; display:none; align-items:center; justify-content:center; padding:20px;
+  }
+  #confirmBox{
+    background:#fff; border-radius:6px; padding:28px 32px;
+    max-width:380px; width:100%; box-shadow:0 8px 40px rgba(0,0,0,.28);
+  }
+  #confirmBox h3{font-size:16px; font-weight:700; margin:0 0 10px;}
+  #confirmBox p{font-size:13px; color:var(--gray); line-height:1.5; margin:0 0 22px;}
+  .confirm-actions{display:flex; gap:10px; justify-content:flex-end;}
+  .btn-confirm-cancel{
+    font:inherit; font-size:13px; padding:8px 18px;
+    border:1.5px solid var(--line); border-radius:3px; background:#fff; cursor:pointer; color:var(--gray);
+  }
+  .btn-confirm-cancel:hover{color:var(--ink); border-color:var(--gray);}
+  .btn-confirm-ok{
+    font:inherit; font-weight:700; font-size:13px; padding:8px 18px;
+    border:none; border-radius:3px; background:#C0392B; color:#fff; cursor:pointer;
+  }
+  .btn-confirm-ok:hover{background:#A93226;}
+
   /* ---------- toast ---------- */
   #toast{
     position:fixed; bottom:24px; right:24px; background:var(--ink); color:#fff;
@@ -288,6 +379,7 @@
   @media screen and (max-width:680px){
     body{font-size:13px;}
     .toolbar{flex-direction:column; align-items:stretch; max-width:100%; margin:12px 12px 8px; gap:10px;}
+    .toolbar-left{flex-wrap:wrap;}
     .tools{justify-content:space-between;}
     .btn{font-size:14px; padding:11px 20px; text-align:center;}
     .page{width:100%; min-height:unset; margin:0 0 20px; padding:20px 16px 16px; box-shadow:none; border-radius:0;}
@@ -315,6 +407,7 @@
     .sel-divider{display:none;}
     .sel-grid{grid-template-columns:1fr 1fr;}
     #modalCard{padding:24px 18px;}
+    .btn-undo{font-size:13px;}
   }
   @media(hover:none){.del{visibility:visible;}}
 
@@ -322,7 +415,7 @@
   @page{size:A4; margin:0;}
   @media print{
     body{background:#fff;}
-    .toolbar,.addrow,.c-ctl,.del,#selScreen,#modalBg,#toast,#siteFooter{display:none !important;}
+    .toolbar,.addrow,.c-ctl,.del,#selScreen,#modalBg,#confirmBg,#toast,#siteFooter{display:none !important;}
     .page{box-shadow:none; margin:0; width:210mm; min-height:297mm;}
     [contenteditable]:hover,[contenteditable]:focus{box-shadow:none; background:transparent;}
   }
@@ -360,7 +453,7 @@
   </div>
 </div>
 
-<!-- ========== INVOICE CONTENT (hidden until PIN passed) ========== -->
+<!-- ========== INVOICE CONTENT ========== -->
 <div id="invoiceContent" style="display:none">
 
   <!-- SELECTOR SCREEN -->
@@ -379,20 +472,19 @@
         <p>Select a client to open their invoice, or add a new client.</p>
       </div>
     </div>
-    <div class="sel-grid" id="selGrid">
-      <!-- rendered by JS -->
-    </div>
+    <div class="sel-grid" id="selGrid"></div>
   </div>
 
   <!-- ====== INV 1: NETCOM AFRICA ====== -->
   <div id="inv-netcom" class="inv-wrapper" style="display:none">
     <div class="toolbar">
-      <div style="display:flex;align-items:center;gap:12px;">
+      <div class="toolbar-left">
         <button class="btn-back" onclick="backToSelector()">&#8592; Back</button>
-        <span class="hint-text">Click any text to edit &mdash; totals update automatically &middot; changes auto-save</span>
+        <button class="btn-undo" id="inv-netcom-undoBtn" onclick="_undo('netcom')" disabled title="Undo (Ctrl+Z)">&#8617;&nbsp;Undo</button>
+        <span class="hint-text">Click any text to edit &mdash; auto-saves to cloud</span>
       </div>
       <div class="tools">
-        <div class="seg" role="group" aria-label="Invoice currency">
+        <div class="seg" role="group" aria-label="Currency">
           <button type="button" class="segbtn active" id="inv-netcom-modeUSD" aria-pressed="true">USD&nbsp;$</button>
           <button type="button" class="segbtn" id="inv-netcom-modeNGN" aria-pressed="false">NGN&nbsp;&#8358;</button>
         </div>
@@ -519,12 +611,13 @@
   <!-- ====== INV 2: MONTEROSA CONSTRUCTIONS ====== -->
   <div id="inv-monterosa" class="inv-wrapper" style="display:none">
     <div class="toolbar">
-      <div style="display:flex;align-items:center;gap:12px;">
+      <div class="toolbar-left">
         <button class="btn-back" onclick="backToSelector()">&#8592; Back</button>
-        <span class="hint-text">Click any text to edit &mdash; totals update automatically &middot; changes auto-save</span>
+        <button class="btn-undo" id="inv-monterosa-undoBtn" onclick="_undo('monterosa')" disabled title="Undo (Ctrl+Z)">&#8617;&nbsp;Undo</button>
+        <span class="hint-text">Click any text to edit &mdash; auto-saves to cloud</span>
       </div>
       <div class="tools">
-        <div class="seg" role="group" aria-label="Invoice currency">
+        <div class="seg" role="group" aria-label="Currency">
           <button type="button" class="segbtn active" id="inv-monterosa-modeUSD" aria-pressed="true">USD&nbsp;$</button>
           <button type="button" class="segbtn" id="inv-monterosa-modeNGN" aria-pressed="false">NGN&nbsp;&#8358;</button>
         </div>
@@ -632,29 +725,60 @@
     </div>
   </div>
 
-  <!-- Dynamic invoice wrappers are appended here by JS -->
+  <!-- Dynamic invoice wrappers appended by JS -->
 
 </div><!-- /#invoiceContent -->
 
-<!-- ========== NEW CLIENT MODAL ========== -->
+<!-- ========== NEW / EDIT CLIENT MODAL ========== -->
 <div id="modalBg" onclick="if(event.target===this)_hideModal()">
   <div id="modalCard">
-    <div class="modal-title">Add New Client Invoice</div>
+    <div class="modal-title" id="m-modal-title">Add New Client Invoice</div>
+
     <label class="modal-label">Company / Client Name <span class="modal-req">*</span></label>
-    <input class="modal-input" id="m-name" type="text" placeholder="e.g. Acme Corporation" maxlength="80">
+    <div class="m-name-wrap">
+      <input class="modal-input" id="m-name" type="text" placeholder="e.g. Acme Corporation" maxlength="80" autocomplete="off">
+      <div id="m-suggestions"></div>
+    </div>
+
+    <!-- Logo search & preview -->
+    <div class="m-logo-row">
+      <div id="m-logo-preview">🏢</div>
+      <div class="m-logo-info">
+        <div class="m-logo-status" id="m-logo-status">Start typing a company name to auto-search for their logo.</div>
+        <button type="button" class="btn-find-logo" id="m-find-logo-btn" onclick="_triggerLogoSearch()">&#128269; Find Logo</button>
+      </div>
+    </div>
+    <input type="hidden" id="m-logo-url">
+
     <label class="modal-label">Short Description (shown on card)</label>
     <input class="modal-input" id="m-desc" type="text" placeholder="e.g. Web design services · VI, Lagos" maxlength="80">
+
     <label class="modal-label">Contact Person</label>
     <input class="modal-input" id="m-contact" type="text" placeholder="e.g. Finance Department">
+
     <label class="modal-label">Address</label>
     <input class="modal-input" id="m-addr" type="text" placeholder="e.g. 12 Commerce Street, Lagos">
+
     <label class="modal-label">Email</label>
     <input class="modal-input" id="m-email" type="email" placeholder="e.g. billing@client.com">
+
     <div class="modal-actions">
       <button class="modal-cancel" onclick="_hideModal()">Cancel</button>
-      <button class="modal-ok" onclick="_submitModal()">Create Invoice</button>
+      <button class="modal-ok" id="m-ok-btn" onclick="_submitModal()">Create Invoice</button>
     </div>
     <div id="m-err" class="modal-err"></div>
+  </div>
+</div>
+
+<!-- ========== CONFIRM DIALOG ========== -->
+<div id="confirmBg">
+  <div id="confirmBox">
+    <h3 id="confirm-title">Are you sure?</h3>
+    <p id="confirm-msg"></p>
+    <div class="confirm-actions">
+      <button class="btn-confirm-cancel" onclick="_confirmNo()">Cancel</button>
+      <button class="btn-confirm-ok" id="confirm-ok-btn" onclick="_confirmYes()">Delete</button>
+    </div>
   </div>
 </div>
 
@@ -671,13 +795,10 @@
 'use strict';
 
 /* ---- utilities ---- */
-function _parseNum(t){
-  var v=parseFloat(String(t).replace(/[^0-9.\-]/g,''));
-  return isNaN(v)?0:v;
-}
+function _parseNum(t){ var v=parseFloat(String(t).replace(/[^0-9.\-]/g,'')); return isNaN(v)?0:v; }
 function _fmt(v){ return v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function _r2(v){ return Math.round(v*100)/100; }
-function _esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function _esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 /* ---- number to words ---- */
 var ONES=['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve',
@@ -710,33 +831,90 @@ function _amtWords(total,mode){
 var _toastTimer=null;
 function _toast(msg){
   var el=document.getElementById('toast');
-  el.textContent=msg;
-  el.classList.add('show');
+  el.textContent=msg; el.classList.add('show');
   clearTimeout(_toastTimer);
   _toastTimer=setTimeout(function(){ el.classList.remove('show'); },2200);
 }
 
+/* ---- confirm dialog ---- */
+var _confirmCallback=null;
+function _confirm(title,msg,okLabel,cb){
+  document.getElementById('confirm-title').textContent=title||'Are you sure?';
+  document.getElementById('confirm-msg').textContent=msg||'';
+  document.getElementById('confirm-ok-btn').textContent=okLabel||'Delete';
+  _confirmCallback=cb;
+  document.getElementById('confirmBg').style.display='flex';
+}
+function _confirmYes(){ document.getElementById('confirmBg').style.display='none'; if(_confirmCallback) _confirmCallback(); _confirmCallback=null; }
+function _confirmNo(){  document.getElementById('confirmBg').style.display='none'; _confirmCallback=null; }
+window._confirmYes=_confirmYes; window._confirmNo=_confirmNo;
+
 /* ---- card definitions ---- */
 var BUILTIN=[
-  {id:'netcom',    name:'Netcom Africa',          desc:'Technology solutions · VI, Lagos', icon:'🌐'},
-  {id:'monterosa', name:'Monterosa Constructions', desc:'Construction services',                 icon:'🏗️'}
+  {id:'netcom',    name:'Netcom Africa',          desc:'Technology solutions · VI, Lagos', icon:'🌐', builtin:true},
+  {id:'monterosa', name:'Monterosa Constructions', desc:'Construction services',            icon:'🏗️', builtin:true}
 ];
 var dynCards=[];
 
 /* ---- per-invoice state ---- */
-var _inv={};         // { id: { mode:'USD' } }
-var _opened={};      // which invoices have been set up
+var _inv={};
+var _opened={};
 var _currentInv=null;
 var _saveTimers={};
 var _ownSave={};
 var _db=null;
 
-/* ---- expose to onclick attrs ---- */
+/* ---- undo stacks ---- */
+var _undoStacks={};
+var _preFocusSnap={};
+
+function _capturePreFocus(id){
+  _preFocusSnap[id]=_snapshotInv(id);
+}
+function _pushUndo(id){
+  var pre=_preFocusSnap[id];
+  if(!pre) return;
+  if(!_undoStacks[id]) _undoStacks[id]=[];
+  var stack=_undoStacks[id];
+  var top=stack.length?stack[stack.length-1]:null;
+  if(top&&JSON.stringify(top)===JSON.stringify(pre)){ _preFocusSnap[id]=null; return; }
+  stack.push(pre);
+  if(stack.length>40) stack.shift();
+  _preFocusSnap[id]=null;
+  _updateUndoBtn(id);
+}
+function _pushUndoDirect(id){
+  var snap=_snapshotInv(id);
+  if(!_undoStacks[id]) _undoStacks[id]=[];
+  var stack=_undoStacks[id];
+  var top=stack.length?stack[stack.length-1]:null;
+  if(top&&JSON.stringify(top)===JSON.stringify(snap)) return;
+  stack.push(snap);
+  if(stack.length>40) stack.shift();
+  _updateUndoBtn(id);
+}
+function _undo(id){
+  if(!_undoStacks[id]||!_undoStacks[id].length){ _toast('Nothing to undo'); return; }
+  var prev=_undoStacks[id].pop();
+  _applySnap(id,prev);
+  _updateUndoBtn(id);
+  _toast('✓ Undone');
+}
+function _updateUndoBtn(id){
+  var btn=document.getElementById('inv-'+id+'-undoBtn');
+  if(btn) btn.disabled=!(_undoStacks[id]&&_undoStacks[id].length>0);
+}
+
+/* ---- expose to global scope (for inline onclick attrs) ---- */
 window.openInvoice=openInvoice;
 window.backToSelector=backToSelector;
 window._showModal=_showModal;
 window._hideModal=_hideModal;
 window._submitModal=_submitModal;
+window._undo=_undo;
+window._editCard=_editCard;
+window._deleteCard=_deleteCard;
+window._triggerLogoSearch=_triggerLogoSearch;
 
 /* ---- navigation ---- */
 function openInvoice(id,cardData){
@@ -780,17 +958,52 @@ function _renderCards(){
   BUILTIN.concat(dynCards).forEach(function(c){
     var div=document.createElement('div');
     div.className='sel-card';
-    div.innerHTML='<div class="sel-icon">'+c.icon+'</div>'+
+    div.setAttribute('tabindex','0');
+
+    var logoHtml;
+    if(c.logo){
+      logoHtml='<div class="sel-icon-wrap"><img src="'+_esc(c.logo)+'" class="sel-card-logo" alt="'+_esc(c.name)+' logo" '+
+        'onerror="this.onerror=null;this.style.display=\'none\';this.nextElementSibling.style.display=\'block\'">'+
+        '<span class="sel-icon" style="display:none">'+c.icon+'</span></div>';
+    } else {
+      logoHtml='<div class="sel-icon-wrap"><span class="sel-icon">'+c.icon+'</span></div>';
+    }
+
+    var actBtns='<div class="sel-card-actions">';
+    actBtns+='<button class="sel-act" title="Edit" onclick="event.stopPropagation();_editCard(\''+c.id+'\')">Edit</button>';
+    if(!c.builtin){
+      actBtns+='<button class="sel-act del-act" title="Delete" onclick="event.stopPropagation();_deleteCard(\''+c.id+'\')">Delete</button>';
+    }
+    actBtns+='</div>';
+
+    div.innerHTML=logoHtml+
       '<div class="sel-name">'+_esc(c.name)+'</div>'+
-      '<div class="sel-desc">'+_esc(c.desc||'')+'</div>';
-    (function(card){ div.addEventListener('click',function(){ openInvoice(card.id,card); }); })(c);
+      '<div class="sel-desc">'+_esc(c.desc||'')+'</div>'+
+      actBtns;
+
+    (function(card){
+      div.addEventListener('click',function(){ openInvoice(card.id,card); });
+      div.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); openInvoice(card.id,card); } });
+    })(c);
     grid.appendChild(div);
   });
+
   var addBtn=document.createElement('div');
   addBtn.className='sel-card sel-add';
-  addBtn.innerHTML='<div class="sel-icon">＋</div><div class="sel-name">Add Client</div><div class="sel-desc">Create a new invoice</div>';
-  addBtn.addEventListener('click',_showModal);
+  addBtn.setAttribute('tabindex','0');
+  addBtn.innerHTML='<div class="sel-icon-wrap"><span class="sel-icon" style="color:var(--blue)">&#65291;</span></div>'+
+    '<div class="sel-name" style="color:var(--blue)">Add Client</div>'+
+    '<div class="sel-desc">Create a new invoice</div>';
+  addBtn.addEventListener('click',function(){ _showModal(null); });
+  addBtn.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); _showModal(null); } });
   grid.appendChild(addBtn);
+}
+
+/* ---- find card by id ---- */
+function _findCard(id){
+  var all=BUILTIN.concat(dynCards);
+  for(var i=0;i<all.length;i++){ if(all[i].id===id) return all[i]; }
+  return null;
 }
 
 /* ---- per-invoice setup ---- */
@@ -799,9 +1012,11 @@ function _setupInvoice(id){
   if(!w) return;
   var body=document.getElementById('inv-'+id+'-body');
 
+  /* add row */
   var addRowBtn=document.getElementById('inv-'+id+'-addRow');
   if(addRowBtn){
     addRowBtn.addEventListener('click',function(){
+      _pushUndoDirect(id);
       var tr=document.createElement('tr');
       tr.innerHTML='<td class="sn"></td><td class="desc" contenteditable="true">New line item</td>'+
         '<td class="num qty" contenteditable="true">1</td>'+
@@ -816,14 +1031,18 @@ function _setupInvoice(id){
     });
   }
 
+  /* delete row */
   if(body){
     body.addEventListener('click',function(e){
       if(e.target.classList.contains('del')&&body.querySelectorAll('tr').length>1){
-        e.target.closest('tr').remove(); _recalcInv(id);
+        _pushUndoDirect(id);
+        e.target.closest('tr').remove();
+        _recalcInv(id);
       }
     });
   }
 
+  /* recalc on input */
   w.addEventListener('input',function(e){
     var inBody=body&&body.contains(e.target);
     var isVat=e.target.id===('inv-'+id+'-vat');
@@ -831,12 +1050,42 @@ function _setupInvoice(id){
     if(inBody||isVat||isFx) _recalcInv(id);
   });
 
+  /* format numbers on blur */
   w.addEventListener('focusout',function(e){
     if(e.target.classList.contains('unit')||e.target.id===('inv-'+id+'-fx')){
-      e.target.textContent=_fmt(_parseNum(e.target.textContent)); _recalcInv(id);
+      e.target.textContent=_fmt(_parseNum(e.target.textContent));
+      _recalcInv(id);
+    }
+    if(e.target.isContentEditable) _pushUndo(id);
+  });
+
+  /* capture state before editing */
+  w.addEventListener('focusin',function(e){
+    if(e.target.isContentEditable) _capturePreFocus(id);
+  });
+
+  /* Ctrl+Z / Cmd+Z for undo */
+  w.addEventListener('keydown',function(e){
+    if((e.ctrlKey||e.metaKey)&&e.key==='z'&&!e.shiftKey){
+      e.preventDefault();
+      _undo(id);
+      return;
+    }
+    if(e.key==='Enter'&&e.target.isContentEditable&&!e.target.classList.contains('desc')){
+      e.preventDefault(); e.target.blur();
     }
   });
 
+  /* plain-text paste */
+  w.addEventListener('paste',function(e){
+    if(e.target.isContentEditable){
+      e.preventDefault();
+      var t=(e.clipboardData||window.clipboardData).getData('text/plain');
+      document.execCommand('insertText',false,t);
+    }
+  });
+
+  /* invoice number → update invno-ref spans */
   var invNoEl=document.getElementById('inv-'+id+'-invNo');
   if(invNoEl){
     invNoEl.addEventListener('input',function(){
@@ -845,24 +1094,11 @@ function _setupInvoice(id){
     });
   }
 
+  /* currency mode buttons */
   var mU=document.getElementById('inv-'+id+'-modeUSD');
   var mN=document.getElementById('inv-'+id+'-modeNGN');
-  if(mU) mU.addEventListener('click',function(){ _setMode(id,'USD'); });
-  if(mN) mN.addEventListener('click',function(){ _setMode(id,'NGN'); });
-
-  w.addEventListener('keydown',function(e){
-    if(e.key==='Enter'&&e.target.isContentEditable&&!e.target.classList.contains('desc')){
-      e.preventDefault(); e.target.blur();
-    }
-  });
-
-  w.addEventListener('paste',function(e){
-    if(e.target.isContentEditable){
-      e.preventDefault();
-      var t=(e.clipboardData||window.clipboardData).getData('text/plain');
-      document.execCommand('insertText',false,t);
-    }
-  });
+  if(mU) mU.addEventListener('click',function(){ _pushUndoDirect(id); _setMode(id,'USD'); });
+  if(mN) mN.addEventListener('click',function(){ _pushUndoDirect(id); _setMode(id,'NGN'); });
 
   _recalcInv(id);
 }
@@ -885,7 +1121,6 @@ function _recalcInv(id){
   subtotal=_r2(subtotal);
 
   function g(s){ return document.getElementById('inv-'+id+'-'+s); }
-
   var vatEl=g('vat');
   var pct=vatEl?_parseNum(vatEl.textContent):7.5;
   var vat=_r2(subtotal*pct/100);
@@ -912,18 +1147,15 @@ function _setMode(id,m){
   if(rate>0){
     var body=document.getElementById('inv-'+id+'-body');
     if(body) body.querySelectorAll('.unit').forEach(function(cell){
-      var u=_parseNum(cell.textContent);
-      cell.textContent=_fmt(_r2(m==='NGN'?u*rate:u/rate));
+      cell.textContent=_fmt(_r2(m==='NGN'?_parseNum(cell.textContent)*rate:_parseNum(cell.textContent)/rate));
     });
   }
   if(_inv[id]) _inv[id].mode=m;
   var usd=(m==='USD');
-
   function g(s){ return document.getElementById('inv-'+id+'-'+s); }
   var bU=g('modeUSD'),bN=g('modeNGN');
   if(bU){ bU.classList.toggle('active',usd); bU.setAttribute('aria-pressed',String(usd)); }
   if(bN){ bN.classList.toggle('active',!usd); bN.setAttribute('aria-pressed',String(!usd)); }
-
   if(g('curLabel')) g('curLabel').textContent=usd?'US Dollar (USD)':'Nigerian Naira (NGN)';
   if(g('unitHead')) g('unitHead').textContent=usd?'UNIT PRICE (USD)':'UNIT PRICE (NGN)';
   if(g('amtHead'))  g('amtHead').textContent=usd?'AMOUNT (USD)':'AMOUNT (NGN)';
@@ -931,7 +1163,6 @@ function _setMode(id,m){
   if(g('curSym'))   g('curSym').textContent=usd?'$':'₦';
   if(g('nairaBox')) g('nairaBox').style.display=usd?'':'none';
   if(g('ngnEqRow')) g('ngnEqRow').style.display=usd?'':'none';
-
   _recalcInv(id);
 }
 
@@ -946,7 +1177,7 @@ function _snapshotInv(id){
   });
   var rows=[];
   if(body) body.querySelectorAll('tr').forEach(function(tr){ rows.push(tr.innerHTML); });
-  return {v:2, fields:fields, rows:rows, mode:(_inv[id]&&_inv[id].mode)||'USD'};
+  return {v:2,fields:fields,rows:rows,mode:(_inv[id]&&_inv[id].mode)||'USD'};
 }
 
 function _applySnap(id,snap){
@@ -962,9 +1193,7 @@ function _applySnap(id,snap){
   if(body&&snap.rows&&snap.rows.length){
     body.innerHTML='';
     snap.rows.forEach(function(rowHtml){
-      var tr=document.createElement('tr');
-      tr.innerHTML=rowHtml;
-      body.appendChild(tr);
+      var tr=document.createElement('tr'); tr.innerHTML=rowHtml; body.appendChild(tr);
     });
   }
   if(_inv[id]) _inv[id].mode=snap.mode||'USD';
@@ -982,11 +1211,26 @@ function _initFirebase(){
       appId:'1:23592597106:web:f0f55be28b2c48820a34eb'
     });
     _db=firebase.database();
+    var done=0;
+    function maybeRender(){ if(++done>=2) _renderCards(); }
+
+    _db.ref('tek/cards_meta').once('value',function(sn){
+      var meta=sn.val()||{};
+      BUILTIN.forEach(function(c){
+        var ov=meta[c.id]; if(!ov) return;
+        if(ov.name) c.name=ov.name;
+        if(ov.desc) c.desc=ov.desc;
+        if(ov.logo!==undefined) c.logo=ov.logo;
+        if(ov.icon) c.icon=ov.icon;
+      });
+      maybeRender();
+    },function(){ maybeRender(); });
+
     _db.ref('tek/cards').once('value',function(sn){
       var data=sn.val();
       if(data&&Array.isArray(data)) dynCards=data;
-      _renderCards();
-    });
+      maybeRender();
+    },function(){ maybeRender(); });
   } catch(e){
     console.warn('Firebase init error:',e);
     _renderCards();
@@ -998,14 +1242,19 @@ function _saveCards(){
   _db.ref('tek/cards').set(dynCards).catch(function(e){ console.error(e); });
 }
 
+function _saveCardMeta(id){
+  if(!_db) return;
+  var c=_findCard(id); if(!c) return;
+  _db.ref('tek/cards_meta/'+id).set({name:c.name,desc:c.desc,logo:c.logo||'',icon:c.icon}).catch(function(e){ console.error(e); });
+}
+
 function _saveInvoice(id){
   if(!_db) return;
-  var snap=_snapshotInv(id);
-  if(!snap) return;
+  var snap=_snapshotInv(id); if(!snap) return;
   _ownSave[id]=true;
   _db.ref('tek/invoices/'+id).set(snap)
     .then(function(){ _toast('✓ Saved to cloud'); })
-    .catch(function(e){ _toast('⚠ Save error'); console.error(e); });
+    .catch(function(){ _toast('⚠ Save error'); });
 }
 
 function _attachListener(id){
@@ -1013,15 +1262,13 @@ function _attachListener(id){
   _db.ref('tek/invoices/'+id).on('value',function(sn){
     if(first){ first=false; return; }
     if(_ownSave[id]){ _ownSave[id]=false; return; }
-    var data=sn.val();
-    if(!data||data.v<1) return;
+    var data=sn.val(); if(!data||data.v<1) return;
     _applySnap(id,data);
   });
 }
 
 function _attachObserver(id){
-  var w=document.getElementById('inv-'+id);
-  if(!w) return;
+  var w=document.getElementById('inv-'+id); if(!w) return;
   var mo=new MutationObserver(function(){
     clearTimeout(_saveTimers[id]);
     _saveTimers[id]=setTimeout(function(){ _saveInvoice(id); },5000);
@@ -1036,9 +1283,7 @@ function _slugify(name){
 
 function _createInvWrapper(id,cardData){
   var div=document.createElement('div');
-  div.id='inv-'+id;
-  div.className='inv-wrapper';
-  div.style.display='none';
+  div.id='inv-'+id; div.className='inv-wrapper'; div.style.display='none';
   div.innerHTML=_buildInvContent(id,cardData);
   document.getElementById('invoiceContent').appendChild(div);
 }
@@ -1049,15 +1294,14 @@ function _buildInvContent(id,opts){
   var addr=opts.addr||'';
   var email=opts.email||'';
   var invno='TEK/LD/2026/001';
-
   function eid(s){ return 'id="inv-'+id+'-'+s+'"'; }
   var CE='contenteditable="true"';
   var h='';
 
-  h+='<div class="toolbar">';
-  h+='<div style="display:flex;align-items:center;gap:12px;">';
+  h+='<div class="toolbar"><div class="toolbar-left">';
   h+='<button class="btn-back" onclick="backToSelector()">&#8592; Back</button>';
-  h+='<span class="hint-text">Click any text to edit &mdash; changes auto-save</span></div>';
+  h+='<button class="btn-undo" '+eid('undoBtn')+' onclick="_undo(\''+id+'\')" disabled title="Undo (Ctrl+Z)">&#8617;&nbsp;Undo</button>';
+  h+='<span class="hint-text">Click any text to edit &mdash; auto-saves to cloud</span></div>';
   h+='<div class="tools"><div class="seg" role="group">';
   h+='<button type="button" class="segbtn active" '+eid('modeUSD')+' aria-pressed="true">USD&nbsp;$</button>';
   h+='<button type="button" class="segbtn" '+eid('modeNGN')+' aria-pressed="false">NGN&nbsp;&#8358;</button>';
@@ -1067,12 +1311,10 @@ function _buildInvContent(id,opts){
   h+='<div class="lh"><div class="brand"><img src="assets/tekktopia-logo.png" alt="Tekktopia logo">';
   h+='<div><div class="name" '+CE+'>TEKKTOPIA LIMITED</div>';
   h+='<div class="tag" '+CE+'>Information Technology Services</div></div></div>';
-  h+='<div class="co">';
-  h+='<div '+CE+'>43 Baale Street, Igbo-Efon, Lekki, Lagos, Nigeria</div>';
+  h+='<div class="co"><div '+CE+'>43 Baale Street, Igbo-Efon, Lekki, Lagos, Nigeria</div>';
   h+='<div '+CE+'>+234 815 433 2992&nbsp;&nbsp;|&nbsp;&nbsp;billing@tekktopia.com</div>';
-  h+='<div '+CE+'>www.tekktopia.com</div>';
-  h+='<div '+CE+'>RC 7466800&nbsp;&nbsp;|&nbsp;&nbsp;TIN 31661991-0001</div>';
-  h+='</div></div><div class="rule"></div>';
+  h+='<div '+CE+'>www.tekktopia.com</div><div '+CE+'>RC 7466800&nbsp;&nbsp;|&nbsp;&nbsp;TIN 31661991-0001</div></div></div>';
+  h+='<div class="rule"></div>';
 
   h+='<div class="titlebar"><h1>INVOICE</h1><div class="meta">';
   h+='<div class="row"><span class="k">Invoice No.</span><span class="v" '+eid('invNo')+' '+CE+'>'+_esc(invno)+'</span></div>';
@@ -1083,28 +1325,22 @@ function _buildInvContent(id,opts){
   h+='</div></div>';
 
   h+='<div class="billto"><div class="lbl">BILL TO</div>';
-  h+='<div class="n" '+CE+'>'+_esc(name)+'</div>';
-  h+='<div '+CE+'>'+_esc(contact)+'</div>';
-  h+='<div class="sub" '+CE+'>'+_esc(addr)+'</div>';
-  h+='<div class="sub" '+CE+'></div>';
+  h+='<div class="n" '+CE+'>'+_esc(name)+'</div><div '+CE+'>'+_esc(contact)+'</div>';
+  h+='<div class="sub" '+CE+'>'+_esc(addr)+'</div><div class="sub" '+CE+'></div>';
   h+='<div class="sub" '+CE+'>'+_esc(email)+'</div></div>';
 
   h+='<table><thead><tr><th class="c-sn">S/N</th><th>DESCRIPTION</th>';
-  h+='<th class="c-qty num">QTY</th>';
-  h+='<th class="c-unit num" '+eid('unitHead')+'>UNIT PRICE (USD)</th>';
-  h+='<th class="c-amt num" '+eid('amtHead')+'>AMOUNT (USD)</th>';
-  h+='<th class="c-ctl"></th></tr></thead>';
+  h+='<th class="c-qty num">QTY</th><th class="c-unit num" '+eid('unitHead')+'>UNIT PRICE (USD)</th>';
+  h+='<th class="c-amt num" '+eid('amtHead')+'>AMOUNT (USD)</th><th class="c-ctl"></th></tr></thead>';
   h+='<tbody '+eid('body')+'>';
   h+='<tr><td class="sn">1</td><td class="desc" '+CE+'>Professional Services</td>';
   h+='<td class="num qty" '+CE+'>1</td><td class="num unit" '+CE+'>0.00</td>';
-  h+='<td class="num amt">0.00</td>';
-  h+='<td class="c-ctl"><button class="del" title="Remove">&times;</button></td></tr>';
+  h+='<td class="num amt">0.00</td><td class="c-ctl"><button class="del" title="Remove">&times;</button></td></tr>';
   h+='</tbody></table>';
   h+='<button class="addrow" '+eid('addRow')+'>+ Add line item</button>';
 
   h+='<div class="below"><div class="words"><div class="lb">Amount in words:</div>';
-  h+='<div class="tx" '+eid('words')+'></div></div>';
-  h+='<div class="totals">';
+  h+='<div class="tx" '+eid('words')+'></div></div><div class="totals">';
   h+='<div class="row"><span class="k">Subtotal</span><span class="v" '+eid('subtotal')+'></span></div>';
   h+='<div class="row"><span class="k">VAT (<span '+eid('vat')+' '+CE+'>7.5</span>%)</span><span class="v" '+eid('vatAmt')+'></span></div>';
   h+='<div class="row grand"><span class="k" '+eid('grandLbl')+'>TOTAL DUE (USD)</span>';
@@ -1112,8 +1348,7 @@ function _buildInvContent(id,opts){
   h+='<div class="row ngneq" '+eid('ngnEqRow')+'><span class="k">Naira equivalent</span>';
   h+='<span class="v">NGN <span '+eid('ngnEq')+'></span></span></div></div></div>';
 
-  h+='<div class="naira" '+eid('nairaBox')+'>';
-  h+='<div class="lbl">NAIRA PAYMENT OPTION</div>';
+  h+='<div class="naira" '+eid('nairaBox')+'><div class="lbl">NAIRA PAYMENT OPTION</div>';
   h+='<div>Exchange rate reference:&nbsp; US$1.00 = NGN <span '+eid('fx')+' '+CE+'>1,407.00</span>&nbsp; (<span '+CE+'>indicative market rate</span>).</div>';
   h+='<div class="l2">Naira equivalent of total due:&nbsp; NGN <span '+eid('ngnTotal')+'></span>.</div></div>';
 
@@ -1134,49 +1369,229 @@ function _buildInvContent(id,opts){
 
   h+='<div class="foot"><div class="thanks" '+CE+'>Thank you for your business.</div>';
   h+='<div class="reg" '+CE+'>Tekktopia Limited&nbsp; |&nbsp; RC 7466800&nbsp; |&nbsp; TIN 31661991-0001&nbsp; |&nbsp; www.tekktopia.com</div></div>';
-
   h+='</div>';
   return h;
 }
 
-/* ---- modal ---- */
-function _showModal(){
-  var bg=document.getElementById('modalBg');
-  bg.style.display='flex';
-  ['m-name','m-desc','m-contact','m-addr','m-email'].forEach(function(id){ document.getElementById(id).value=''; });
+/* ---- modal state ---- */
+var _modalMode='create';
+var _modalEditId=null;
+var _logoSearchTimer=null;
+
+/* ---- logo search (Clearbit autocomplete — public CORS-enabled API) ---- */
+function _triggerLogoSearch(){
+  var name=document.getElementById('m-name').value.trim();
+  if(!name){ document.getElementById('m-logo-status').textContent='Enter a company name first.'; return; }
+  _doLogoSearch(name);
+}
+
+function _doLogoSearch(name){
+  var btn=document.getElementById('m-find-logo-btn');
+  var status=document.getElementById('m-logo-status');
+  if(btn) btn.disabled=true;
+  status.textContent='Searching for '+name+'...';
+
+  fetch('https://autocomplete.clearbit.com/v1/companies/suggest?query='+encodeURIComponent(name))
+    .then(function(r){ return r.json(); })
+    .then(function(results){
+      if(btn) btn.disabled=false;
+      if(!results||!results.length){
+        status.textContent='No matches found. You can paste a logo URL in the field above.';
+        _hideSuggestions();
+        return;
+      }
+      status.textContent='';
+      _showSuggestions(results.slice(0,6));
+    })
+    .catch(function(){
+      if(btn) btn.disabled=false;
+      status.textContent='Logo search unavailable right now. You can paste a logo URL in the field above.';
+      _hideSuggestions();
+    });
+}
+
+function _showSuggestions(results){
+  var sug=document.getElementById('m-suggestions');
+  sug.innerHTML='';
+  results.forEach(function(r){
+    var item=document.createElement('div');
+    item.className='m-sug-item';
+    var logoSrc=r.logo||'';
+    item.innerHTML=
+      (logoSrc?'<img class="m-sug-logo" src="'+_esc(logoSrc)+'" alt="" onerror="this.style.display=\'none\'">':'<span style="width:28px;height:28px;flex-shrink:0;display:inline-block"></span>')+
+      '<div><div class="m-sug-name">'+_esc(r.name)+'</div><div class="m-sug-domain">'+_esc(r.domain||'')+'</div></div>';
+    item.addEventListener('mousedown',function(e){ e.preventDefault(); }); // prevent blur on name field
+    item.addEventListener('click',function(){
+      document.getElementById('m-name').value=r.name;
+      document.getElementById('m-logo-url').value=logoSrc;
+      _updateLogoPreview(logoSrc,'🏢');
+      document.getElementById('m-logo-status').textContent=logoSrc?'Logo found: '+r.domain:'No logo available for this company.';
+      _hideSuggestions();
+    });
+    sug.appendChild(item);
+  });
+  sug.style.display='block';
+}
+
+function _hideSuggestions(){
+  var sug=document.getElementById('m-suggestions');
+  if(sug) sug.style.display='none';
+}
+
+function _updateLogoPreview(logoUrl,fallback){
+  var preview=document.getElementById('m-logo-preview');
+  if(!preview) return;
+  if(logoUrl){
+    var img=new Image();
+    img.className=''; img.alt='logo';
+    img.onload=function(){ preview.innerHTML=''; preview.appendChild(img); };
+    img.onerror=function(){ preview.innerHTML=fallback||'🏢'; };
+    img.src=logoUrl;
+  } else {
+    preview.innerHTML=fallback||'🏢';
+  }
+}
+
+/* ---- modal open/close ---- */
+function _showModal(existingCard){
+  _modalMode=existingCard?'edit':'create';
+  _modalEditId=existingCard?existingCard.id:null;
+
+  var titleEl=document.getElementById('m-modal-title');
+  var okBtn=document.getElementById('m-ok-btn');
+
+  if(existingCard){
+    titleEl.textContent='Edit Client — '+existingCard.name;
+    okBtn.textContent='Save Changes';
+    document.getElementById('m-name').value=existingCard.name||'';
+    document.getElementById('m-desc').value=existingCard.desc||'';
+    document.getElementById('m-contact').value=existingCard.contact||'';
+    document.getElementById('m-addr').value=existingCard.addr||'';
+    document.getElementById('m-email').value=existingCard.email||'';
+    document.getElementById('m-logo-url').value=existingCard.logo||'';
+    _updateLogoPreview(existingCard.logo||'',existingCard.icon||'🏢');
+    document.getElementById('m-logo-status').textContent=existingCard.logo?'Current logo loaded. Search to change.':'No logo set. Search to find one.';
+  } else {
+    titleEl.textContent='Add New Client Invoice';
+    okBtn.textContent='Create Invoice';
+    ['m-name','m-desc','m-contact','m-addr','m-email'].forEach(function(fid){ document.getElementById(fid).value=''; });
+    document.getElementById('m-logo-url').value='';
+    document.getElementById('m-logo-preview').innerHTML='🏢';
+    document.getElementById('m-logo-status').textContent='Start typing a company name to auto-search for their logo.';
+  }
+
   document.getElementById('m-err').textContent='';
-  document.getElementById('m-name').focus();
+  _hideSuggestions();
+  document.getElementById('modalBg').style.display='flex';
+  setTimeout(function(){ document.getElementById('m-name').focus(); },60);
 }
 
 function _hideModal(){
   document.getElementById('modalBg').style.display='none';
+  clearTimeout(_logoSearchTimer);
+  _hideSuggestions();
 }
 
 function _submitModal(){
   var name=document.getElementById('m-name').value.trim();
-  if(!name){ document.getElementById('m-err').textContent='Company name is required.'; document.getElementById('m-name').focus(); return; }
-  var id=_slugify(name);
+  if(!name){
+    document.getElementById('m-err').textContent='Company name is required.';
+    document.getElementById('m-name').focus();
+    return;
+  }
   var card={
-    id:id, name:name,
+    id:_modalEditId||_slugify(name),
+    name:name,
     desc:document.getElementById('m-desc').value.trim()||'',
     icon:'📄',
+    logo:document.getElementById('m-logo-url').value.trim()||'',
     contact:document.getElementById('m-contact').value.trim(),
     addr:document.getElementById('m-addr').value.trim(),
     email:document.getElementById('m-email').value.trim()
   };
-  dynCards.push(card);
-  _saveCards();
-  _renderCards();
-  _hideModal();
-  openInvoice(id,card);
+
+  if(_modalMode==='edit'){
+    var isBuiltin=false;
+    for(var i=0;i<BUILTIN.length;i++){
+      if(BUILTIN[i].id===card.id){
+        Object.assign(BUILTIN[i],{name:card.name,desc:card.desc,logo:card.logo,icon:card.icon,contact:card.contact,addr:card.addr,email:card.email});
+        isBuiltin=true;
+        _saveCardMeta(card.id);
+        break;
+      }
+    }
+    if(!isBuiltin){
+      for(var j=0;j<dynCards.length;j++){
+        if(dynCards[j].id===card.id){ dynCards[j]=card; break; }
+      }
+      _saveCards();
+    }
+    _renderCards();
+    _hideModal();
+    _toast('✓ Client updated');
+  } else {
+    dynCards.push(card);
+    _saveCards();
+    _renderCards();
+    _hideModal();
+    openInvoice(card.id,card);
+  }
 }
 
-/* ---- modal keyboard ---- */
+function _editCard(id){
+  var card=_findCard(id);
+  if(card) _showModal(card);
+}
+
+function _deleteCard(id){
+  var card=_findCard(id);
+  if(!card) return;
+  _confirm(
+    'Delete "'+card.name+'"?',
+    'This removes the card from the portal. Invoice data stays in the cloud — you can restore it by re-adding a card with the same name.',
+    'Delete',
+    function(){
+      dynCards=dynCards.filter(function(c){ return c.id!==id; });
+      _saveCards();
+      _renderCards();
+      _toast('Client removed');
+    }
+  );
+}
+
+/* ---- modal keyboard handling ---- */
+(function(){
+  var nameEl=document.getElementById('m-name');
+  if(nameEl){
+    nameEl.addEventListener('input',function(){
+      var name=this.value.trim();
+      if(name.length<2){ _hideSuggestions(); return; }
+      clearTimeout(_logoSearchTimer);
+      _logoSearchTimer=setTimeout(function(){ _doLogoSearch(name); },700);
+    });
+    nameEl.addEventListener('blur',function(){
+      setTimeout(_hideSuggestions,150);
+    });
+  }
+
+  var logoUrlEl=document.getElementById('m-logo-url');
+  if(logoUrlEl){
+    logoUrlEl.addEventListener('input',function(){
+      _updateLogoPreview(this.value.trim(),'🏢');
+    });
+  }
+})();
+
 document.addEventListener('keydown',function(e){
-  if(e.key==='Escape'&&document.getElementById('modalBg').style.display==='flex') _hideModal();
-  if(e.key==='Enter'&&document.getElementById('modalBg').style.display==='flex'){
+  var modalOpen=document.getElementById('modalBg').style.display==='flex';
+  var confirmOpen=document.getElementById('confirmBg').style.display==='flex';
+  if(e.key==='Escape'){
+    if(confirmOpen){ _confirmNo(); return; }
+    if(modalOpen){ _hideModal(); return; }
+  }
+  if(e.key==='Enter'&&modalOpen){
     var active=document.activeElement;
-    if(active&&active.classList.contains('modal-input')) _submitModal();
+    if(active&&active.classList.contains('modal-input')&&active.id!=='m-email') _submitModal();
   }
 });
 
@@ -1189,8 +1604,8 @@ window.addEventListener('beforeprint',function(){
 });
 
 /* ---- init ---- */
-_renderCards(); // immediate render with BUILTIN cards
-if(window.firebase) _initFirebase(); // re-renders after loading dynamic cards from Firebase
+_renderCards();
+if(window.firebase) _initFirebase();
 
 })();
 </script>
@@ -1251,21 +1666,17 @@ if(window.firebase) _initFirebase(); // re-renders after loading dynamic cards f
   function showErr(msg){ errEl.textContent = msg; }
 
   function getValidPin(){
-    var WINDOW_MS = 24*60*60*1000;
-    var OFFSET_MS = 11*60*60*1000;
+    var WINDOW_MS = 24*60*60*1000, OFFSET_MS = 11*60*60*1000;
     var windowNum = Math.floor((Date.now()-OFFSET_MS)/WINDOW_MS);
     var enc = new TextEncoder();
     return crypto.subtle.importKey(
-      'raw', enc.encode(SECRET),
-      {name:'HMAC', hash:'SHA-256'},
-      false, ['sign']
+      'raw', enc.encode(SECRET), {name:'HMAC',hash:'SHA-256'}, false, ['sign']
     ).then(function(key){
       return crypto.subtle.sign('HMAC', key, enc.encode(String(windowNum)));
     }).then(function(sig){
       var a = new Uint8Array(sig);
       var n = ((a[0]<<24)|(a[1]<<16)|(a[2]<<8)|a[3]) >>> 0;
-      var s = String(n % 10000);
-      while(s.length < 4) s = '0' + s;
+      var s = String(n % 10000); while(s.length<4) s='0'+s;
       return s;
     });
   }
@@ -1275,7 +1686,6 @@ if(window.firebase) _initFirebase(); // re-renders after loading dynamic cards f
     var pin = getPin();
     if(pin.length < 4){ showErr('Please enter all 4 digits.'); return; }
 
-    // Breakthrough code — always grants access when daily PIN is unavailable
     if(pin === '2324'){
       overlay.style.display = 'none';
       content.style.display = '';
@@ -1294,67 +1704,49 @@ if(window.firebase) _initFirebase(); // re-renders after loading dynamic cards f
         notify(false, failCount);
         digits.forEach(function(d){ d.classList.add('pinD-err'); });
         if(failCount >= MAX_ATTEMPTS){
-          isLocked = true;
-          btn.disabled = true;
-          digits.forEach(function(d){ d.disabled = true; });
+          isLocked = true; btn.disabled = true;
+          digits.forEach(function(d){ d.disabled=true; });
           var mins = LOCK_MINUTES;
-          showErr('Too many attempts. Locked for ' + mins + ' min.');
+          showErr('Too many attempts. Locked for '+mins+' min.');
           var t = setInterval(function(){
             mins--;
-            if(mins <= 0){
-              clearInterval(t);
-              isLocked = false; failCount = 0;
-              btn.disabled = false;
-              digits.forEach(function(d){ d.disabled = false; });
+            if(mins<=0){
+              clearInterval(t); isLocked=false; failCount=0;
+              btn.disabled=false;
+              digits.forEach(function(d){ d.disabled=false; });
               clearDigits(); showErr('');
             } else {
-              showErr('Too many attempts. Locked for ' + mins + ' min.');
+              showErr('Too many attempts. Locked for '+mins+' min.');
             }
-          }, 60000);
+          },60000);
         } else {
-          var left = MAX_ATTEMPTS - failCount;
-          showErr('Incorrect PIN. ' + left + ' attempt' + (left===1?'':'s') + ' remaining.');
-          setTimeout(clearDigits, 900);
+          var left=MAX_ATTEMPTS-failCount;
+          showErr('Incorrect PIN. '+left+' attempt'+(left===1?'':'s')+' remaining.');
+          setTimeout(clearDigits,900);
         }
       }
     }).catch(function(){
-      btn.disabled = false;
+      btn.disabled=false;
       showErr('Security error — please refresh and try again.');
     });
   }
 
-  function notify(success, failsSoFar){
-    var now = new Date().toLocaleString('en-GB', {
-      timeZone:'Africa/Lagos', weekday:'long',
-      year:'numeric', month:'long', day:'numeric',
-      hour:'2-digit', minute:'2-digit', second:'2-digit'
+  function notify(success,failsSoFar){
+    var now=new Date().toLocaleString('en-GB',{
+      timeZone:'Africa/Lagos',weekday:'long',year:'numeric',month:'long',day:'numeric',
+      hour:'2-digit',minute:'2-digit',second:'2-digit'
     });
-    var subject = success
-      ? 'INVOICE PORTAL ACCESSED — Tekktopia'
-      : 'FAILED PIN ATTEMPT #' + failsSoFar + ' — Tekktopia Invoice Portal';
-    var body = success
-      ? 'Tekktopia Invoice Portal was successfully accessed.\n\n'
-        + 'Time (WAT): ' + now + '\n'
-        + 'Failed attempts before success: ' + failsSoFar + '\n'
-        + 'Browser: ' + navigator.userAgent + '\n'
-        + 'Referrer: ' + (document.referrer || 'Direct')
-      : 'Failed PIN entry on Tekktopia Invoice Portal.\n\n'
-        + 'Attempt: #' + failsSoFar + ' of ' + MAX_ATTEMPTS + '\n'
-        + 'Time (WAT): ' + now + '\n'
-        + 'Browser: ' + navigator.userAgent + '\n'
-        + 'Referrer: ' + (document.referrer || 'Direct');
-
-    fetch('https://formsubmit.co/ajax/' + NOTIFY_EMAIL, {
+    var subject=success
+      ?'INVOICE PORTAL ACCESSED — Tekktopia'
+      :'FAILED PIN ATTEMPT #'+failsSoFar+' — Tekktopia Invoice Portal';
+    var body=success
+      ?'Tekktopia Invoice Portal was successfully accessed.\n\nTime (WAT): '+now+'\nFailed attempts before success: '+failsSoFar+'\nBrowser: '+navigator.userAgent+'\nReferrer: '+(document.referrer||'Direct')
+      :'Failed PIN entry on Tekktopia Invoice Portal.\n\nAttempt: #'+failsSoFar+' of '+MAX_ATTEMPTS+'\nTime (WAT): '+now+'\nBrowser: '+navigator.userAgent+'\nReferrer: '+(document.referrer||'Direct');
+    fetch('https://formsubmit.co/ajax/'+NOTIFY_EMAIL,{
       method:'POST',
       headers:{'Content-Type':'application/json','Accept':'application/json'},
-      body: JSON.stringify({
-        name:'Tekktopia Invoice System',
-        email:'noreply@tekktopia.com',
-        message:body,
-        _subject:subject,
-        _captcha:'false',
-        _template:'basic'
-      })
+      body:JSON.stringify({name:'Tekktopia Invoice System',email:'noreply@tekktopia.com',
+        message:body,_subject:subject,_captcha:'false',_template:'basic'})
     }).catch(function(){});
   }
 
