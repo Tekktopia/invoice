@@ -180,6 +180,21 @@
   tbody td{padding:9px 6px; border-bottom:.7px solid var(--line); vertical-align:top;}
   .c-sn{width:34px;} .c-qty{width:56px;} .c-unit{width:118px;} .c-amt{width:126px;}
   .c-ctl{width:26px; border:none !important; padding:0 !important;}
+  .c-add-col{width:28px; border:none !important; padding:1px !important; text-align:center;}
+  th.c-custom{min-width:60px; font-size:10px; letter-spacing:.09em; font-weight:700; position:relative;}
+  td.custom-cell{word-break:break-word; overflow-wrap:anywhere;}
+  .add-col-btn{
+    border:none; background:none; font-size:16px; font-weight:700; color:var(--gray);
+    cursor:pointer; padding:2px 4px; line-height:1; border-radius:3px;
+  }
+  .add-col-btn:hover{color:var(--ink); background:var(--hover);}
+  .del-col-btn{
+    display:none; position:absolute; top:1px; right:4px;
+    border:none; background:none; font-size:11px; color:var(--gray);
+    cursor:pointer; padding:1px 3px; line-height:1;
+  }
+  .del-col-btn:hover{color:#C0392B;}
+  th.c-custom:hover .del-col-btn,th.c-custom:focus-within .del-col-btn{display:block;}
   th.num,td.num{text-align:right;}
   td.sn{color:var(--ink);}
   .del{
@@ -502,7 +517,7 @@
   @page{size:A4; margin:0;}
   @media print{
     body{background:#fff;}
-    .toolbar,.addrow,.c-ctl,.del,.pg-brk,
+    .toolbar,.addrow,.c-ctl,.del,.pg-brk,.c-add-col,.del-col-btn,
     #selScreen,#modalBg,#confirmBg,#calPop,#toast,#siteFooter{display:none !important;}
     .inv-date-trigger::after,.inv-date-trigger:hover,.inv-date-trigger:focus{
       content:none; box-shadow:none !important; background:transparent !important;
@@ -705,7 +720,6 @@
       <div class="naira" id="inv-netcom-nairaBox">
         <div class="lbl">NAIRA PAYMENT OPTION</div>
         <div>Exchange rate reference:&nbsp; US$1.00 = NGN <span id="inv-netcom-fx" contenteditable="true">1,407.00</span>&nbsp; (<span contenteditable="true">indicative market rate as at 21 July 2026</span>).</div>
-        <div class="l2">Naira equivalent of total due:&nbsp; NGN <span id="inv-netcom-ngnTotal"></span>.&nbsp; Naira payments should apply the prevailing rate on the payment date.</div>
       </div>
       <div class="bankdetails">
         <div class="lbl">BANK DETAILS</div>
@@ -823,7 +837,6 @@
       <div class="naira" id="inv-monterosa-nairaBox">
         <div class="lbl">NAIRA PAYMENT OPTION</div>
         <div>Exchange rate reference:&nbsp; US$1.00 = NGN <span id="inv-monterosa-fx" contenteditable="true">1,407.00</span>&nbsp; (<span contenteditable="true">indicative market rate</span>).</div>
-        <div class="l2">Naira equivalent of total due:&nbsp; NGN <span id="inv-monterosa-ngnTotal"></span>.&nbsp; Naira payments should apply the prevailing rate on the payment date.</div>
       </div>
       <div class="bankdetails">
         <div class="lbl">BANK DETAILS</div>
@@ -1089,6 +1102,8 @@ window._hideCal=_hideCal;
 window._editCard=_editCard;
 window._deleteCard=_deleteCard;
 window._triggerLogoSearch=_triggerLogoSearch;
+window._addColumn=_addColumn;
+window._deleteColumn=_deleteColumn;
 
 /* ---- navigation ---- */
 function openInvoice(id,cardData){
@@ -1180,6 +1195,101 @@ function _findCard(id){
   return null;
 }
 
+/* ---- custom columns ---- */
+function _addColBtn(id){
+  var head=document.getElementById('inv-'+id+'-head');
+  if(!head||head.querySelector('.c-add-col')) return;
+  var th=document.createElement('th');
+  th.className='c-add-col';
+  th.innerHTML='<button class="add-col-btn" title="Add column" onclick="_addColumn(\''+id+'\')">+</button>';
+  head.querySelector('tr').appendChild(th);
+}
+
+function _addColumn(id){
+  var head=document.getElementById('inv-'+id+'-head');
+  var body=document.getElementById('inv-'+id+'-body');
+  if(!head||!body) return;
+  _pushUndoDirect(id);
+  var tr=head.querySelector('tr');
+  var qtyTh=tr.querySelector('th.c-qty');
+  var addTh=tr.querySelector('th.c-add-col');
+  var newTh=document.createElement('th');
+  newTh.className='c-custom';
+  newTh.contentEditable='true';
+  newTh.style.width='90px';
+  newTh.textContent='New Column';
+  var delBtn=document.createElement('button');
+  delBtn.className='del-col-btn'; delBtn.title='Remove column'; delBtn.innerHTML='&times;';
+  (function(t){ delBtn.addEventListener('click',function(e){ e.stopPropagation(); _deleteColumn(t,id); }); })(newTh);
+  newTh.appendChild(delBtn);
+  if(qtyTh) tr.insertBefore(newTh,qtyTh);
+  else if(addTh) tr.insertBefore(newTh,addTh);
+  else tr.appendChild(newTh);
+  body.querySelectorAll('tr').forEach(function(row){
+    var qtyTd=row.querySelector('td.qty');
+    var newTd=document.createElement('td');
+    newTd.className='custom-cell'; newTd.contentEditable='true';
+    if(qtyTd) row.insertBefore(newTd,qtyTd);
+    else { var ctl=row.querySelector('.c-ctl'); if(ctl) row.insertBefore(newTd,ctl); else row.appendChild(newTd); }
+  });
+  newTh.focus();
+  document.getSelection().selectAllChildren(newTh);
+  clearTimeout(_saveTimers[id]);
+  _saveTimers[id]=setTimeout(function(){ _saveInvoice(id); },3000);
+}
+
+function _deleteColumn(th,id){
+  var head=document.getElementById('inv-'+id+'-head');
+  var body=document.getElementById('inv-'+id+'-body');
+  if(!head||!body) return;
+  _pushUndoDirect(id);
+  var ths=Array.from(head.querySelector('tr').querySelectorAll('th'));
+  var colIdx=ths.indexOf(th);
+  if(colIdx<0) return;
+  body.querySelectorAll('tr').forEach(function(row){
+    var tds=row.querySelectorAll('td');
+    if(tds[colIdx]) tds[colIdx].remove();
+  });
+  th.remove();
+  clearTimeout(_saveTimers[id]);
+  _saveTimers[id]=setTimeout(function(){ _saveInvoice(id); },3000);
+}
+
+/* ---- legacy Firebase cleanup ---- */
+var _KNOWN_HEAD_CLS=['c-sn','c-qty','c-unit','c-amt','c-ctl','c-custom'];
+function _stripLegacyHead(headEl){
+  if(!headEl) return;
+  headEl.querySelectorAll('tr th').forEach(function(th){
+    var hasKnown=_KNOWN_HEAD_CLS.some(function(c){return th.classList.contains(c);});
+    if(hasKnown) return;
+    if(!th.className.trim()) return; /* no class = description column, keep */
+    th.remove(); /* has an unrecognised class (e.g. c-type, c-occ) */
+  });
+  /* catch classless occurrence ths by text content */
+  headEl.querySelectorAll('tr th:not(.c-sn):not(.c-qty):not(.c-unit):not(.c-amt):not(.c-ctl):not(.c-custom)').forEach(function(th){
+    if(th.className.trim()) return;
+    var t=(th.textContent||'').trim().replace(/\s+/g,' ').toUpperCase();
+    if(t==='OCCURRENCE'||t==='OCCURENCE'||t==='TYPE') th.remove();
+  });
+}
+function _stripLegacyCells(bodyEl){
+  bodyEl.querySelectorAll('td.type-cell,td.occ-cell').forEach(function(td){ td.remove(); });
+  /* position-based: remove any td between .desc and .qty that isn't a custom-cell */
+  bodyEl.querySelectorAll('tr').forEach(function(tr){
+    var tds=Array.from(tr.querySelectorAll('td'));
+    var di=-1,qi=-1;
+    tds.forEach(function(td,i){
+      if(td.classList.contains('desc')) di=i;
+      if(td.classList.contains('qty')&&qi<0) qi=i;
+    });
+    if(di>=0&&qi>di+1){
+      for(var i=qi-1;i>di;i--){
+        if(!tds[i].classList.contains('custom-cell')) tds[i].remove();
+      }
+    }
+  });
+}
+
 /* ---- per-invoice setup ---- */
 function _setupInvoice(id){
   var w=document.getElementById('inv-'+id);
@@ -1191,8 +1301,13 @@ function _setupInvoice(id){
   if(addRowBtn){
     addRowBtn.addEventListener('click',function(){
       _pushUndoDirect(id);
+      var head=document.getElementById('inv-'+id+'-head');
+      var customCount=head?head.querySelectorAll('th.c-custom').length:0;
+      var customCells='';
+      for(var ci=0;ci<customCount;ci++) customCells+='<td class="custom-cell" contenteditable="true"></td>';
       var tr=document.createElement('tr');
       tr.innerHTML='<td class="sn"></td><td class="desc" contenteditable="true">New line item</td>'+
+        customCells+
         '<td class="num qty" contenteditable="true">1</td>'+
         '<td class="num unit" contenteditable="true">0.00</td>'+
         '<td class="num amt">0.00</td>'+
@@ -1285,6 +1400,7 @@ function _setupInvoice(id){
 
   _setupDateFields(id);
   _recalcInv(id);
+  _addColBtn(id);
 }
 
 /* ---- page-break badges ---- */
@@ -1345,16 +1461,19 @@ function _recalcInv(id){
 /* ---- currency mode ---- */
 function _setMode(id,m){
   var mode=(_inv[id]&&_inv[id].mode)||'USD';
-  if(m===mode) return;
-  var fxEl=document.getElementById('inv-'+id+'-fx');
-  var rate=fxEl?_parseNum(fxEl.textContent):0;
-  if(rate>0){
-    var body=document.getElementById('inv-'+id+'-body');
-    if(body) body.querySelectorAll('.unit').forEach(function(cell){
-      cell.textContent=_fmt(_r2(m==='NGN'?_parseNum(cell.textContent)*rate:_parseNum(cell.textContent)/rate));
-    });
+  if(m!==mode){
+    /* only convert prices when mode is actually changing */
+    var fxEl=document.getElementById('inv-'+id+'-fx');
+    var rate=fxEl?_parseNum(fxEl.textContent):0;
+    if(rate>0){
+      var body=document.getElementById('inv-'+id+'-body');
+      if(body) body.querySelectorAll('.unit').forEach(function(cell){
+        cell.textContent=_fmt(_r2(m==='NGN'?_parseNum(cell.textContent)*rate:_parseNum(cell.textContent)/rate));
+      });
+    }
+    if(_inv[id]) _inv[id].mode=m;
   }
-  if(_inv[id]) _inv[id].mode=m;
+  /* always refresh UI labels/buttons regardless of whether mode changed */
   var usd=(m==='USD');
   function g(s){ return document.getElementById('inv-'+id+'-'+s); }
   var bU=g('modeUSD'),bN=g('modeNGN');
@@ -1375,13 +1494,21 @@ function _snapshotInv(id){
   var w=document.getElementById('inv-'+id);
   if(!w) return null;
   var body=document.getElementById('inv-'+id+'-body');
+  var head=document.getElementById('inv-'+id+'-head');
   var fields=[];
   w.querySelectorAll('[contenteditable]').forEach(function(el){
-    if(!body||!body.contains(el)) fields.push(el.innerHTML);
+    if((!body||!body.contains(el))&&!el.classList.contains('c-custom'))
+      fields.push(el.innerHTML);
   });
   var rows=[];
   if(body) body.querySelectorAll('tr').forEach(function(tr){ rows.push(tr.innerHTML); });
-  return {v:2,fields:fields,rows:rows,mode:(_inv[id]&&_inv[id].mode)||'USD'};
+  var headHtml='';
+  if(head){
+    var clone=head.cloneNode(true);
+    clone.querySelectorAll('.c-add-col,.del-col-btn').forEach(function(el){ el.remove(); });
+    headHtml=clone.querySelector('tr').innerHTML;
+  }
+  return {v:3,fields:fields,rows:rows,mode:(_inv[id]&&_inv[id].mode)||'USD',head:headHtml};
 }
 
 function _applySnap(id,snap){
@@ -1389,9 +1516,25 @@ function _applySnap(id,snap){
   var w=document.getElementById('inv-'+id);
   if(!w) return;
   var body=document.getElementById('inv-'+id+'-body');
+  var head=document.getElementById('inv-'+id+'-head');
+
+  /* restore custom columns from v3+ snapshots */
+  if(snap.v>=3&&snap.head&&head){
+    var headTr=head.querySelector('tr');
+    if(headTr) headTr.innerHTML=snap.head;
+    _stripLegacyHead(head); /* remove any legacy occurrence/type ths */
+    head.querySelectorAll('th.c-custom').forEach(function(th){
+      var delBtn=document.createElement('button');
+      delBtn.className='del-col-btn'; delBtn.title='Remove column'; delBtn.innerHTML='&times;';
+      (function(t){ delBtn.addEventListener('click',function(e){ e.stopPropagation(); _deleteColumn(t,id); }); })(th);
+      th.appendChild(delBtn);
+    });
+    _addColBtn(id);
+  }
+
   var fields=[];
   w.querySelectorAll('[contenteditable]').forEach(function(el){
-    if(!body||!body.contains(el)) fields.push(el);
+    if((!body||!body.contains(el))&&!el.classList.contains('c-custom')) fields.push(el);
   });
   (snap.fields||[]).forEach(function(html,i){ if(fields[i]) fields[i].innerHTML=html; });
   if(body&&snap.rows&&snap.rows.length){
@@ -1399,6 +1542,7 @@ function _applySnap(id,snap){
     snap.rows.forEach(function(rowHtml){
       var tr=document.createElement('tr'); tr.innerHTML=rowHtml; body.appendChild(tr);
     });
+    _stripLegacyCells(body);
   }
   if(_inv[id]) _inv[id].mode=snap.mode||'USD';
   _setMode(id,snap.mode||'USD');
@@ -1704,7 +1848,7 @@ function _buildInvContent(id,opts){
 
   h+='<div class="naira" '+eid('nairaBox')+'><div class="lbl">NAIRA PAYMENT OPTION</div>';
   h+='<div>Exchange rate reference:&nbsp; US$1.00 = NGN <span '+eid('fx')+' '+CE+'>1,407.00</span>&nbsp; (<span '+CE+'>indicative market rate</span>).</div>';
-  h+='<div class="l2">Naira equivalent of total due:&nbsp; NGN <span '+eid('ngnTotal')+'></span>.</div></div>';
+  h+='</div>';
 
   h+='<div class="bankdetails"><div class="lbl">BANK DETAILS</div><table>';
   h+='<tr><td>Bank Name</td><td '+CE+'>Globus Bank</td></tr>';
