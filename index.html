@@ -1309,31 +1309,32 @@ function _stripLegacyHead(headEl){
     if(t==='OCCURRENCE'||t==='OCCURENCE'||t==='TYPE') th.remove();
   });
 }
-function _stripLegacyCells(bodyEl,headEl){
-  /* class-based removal for known legacy formats */
-  bodyEl.querySelectorAll('td.type-cell,td.occ-cell').forEach(function(td){ td.remove(); });
-  /* position-based: remove any td between .desc and .qty that isn't a custom-cell */
-  bodyEl.querySelectorAll('tr').forEach(function(tr){
-    var tds=Array.from(tr.querySelectorAll('td'));
-    var di=-1,qi=-1;
-    tds.forEach(function(td,i){
-      if(td.classList.contains('desc')) di=i;
-      if(td.classList.contains('qty')&&qi<0) qi=i;
-    });
-    if(di>=0&&qi>di+1){
-      for(var i=qi-1;i>di;i--){
-        if(!tds[i].classList.contains('custom-cell')) tds[i].remove();
-      }
-    }
-  });
-  /* count-based fallback: trim extra tds that exceed what the header declares */
-  if(headEl){
-    var expected=headEl.querySelectorAll('th:not(.c-add-col)').length;
-    bodyEl.querySelectorAll('tr').forEach(function(tr){
-      var tds=Array.from(tr.querySelectorAll('td'));
-      for(var i=tds.length-1;i>=expected;i--) tds[i].remove();
-    });
+function _normaliseRow(tr,customCount){
+  var sn=tr.querySelector('td.sn');
+  var desc=tr.querySelector('td.desc');
+  var customs=Array.from(tr.querySelectorAll('td.custom-cell'));
+  var qty=tr.querySelector('td.qty');
+  var unit=tr.querySelector('td.unit');
+  var amt=tr.querySelector('td.amt');
+  var ctl=tr.querySelector('td.c-ctl');
+  var newTr=document.createElement('tr');
+  if(sn) newTr.appendChild(sn.cloneNode(true));
+  else newTr.insertAdjacentHTML('beforeend','<td class="sn"></td>');
+  if(desc) newTr.appendChild(desc.cloneNode(true));
+  else newTr.insertAdjacentHTML('beforeend','<td class="desc" contenteditable="true"></td>');
+  for(var i=0;i<(customCount||0);i++){
+    if(customs[i]) newTr.appendChild(customs[i].cloneNode(true));
+    else newTr.insertAdjacentHTML('beforeend','<td class="custom-cell" contenteditable="true"></td>');
   }
+  if(qty) newTr.appendChild(qty.cloneNode(true));
+  else newTr.insertAdjacentHTML('beforeend','<td class="num qty" contenteditable="true">1</td>');
+  if(unit) newTr.appendChild(unit.cloneNode(true));
+  else newTr.insertAdjacentHTML('beforeend','<td class="num unit" contenteditable="true">0.00</td>');
+  if(amt) newTr.appendChild(amt.cloneNode(true));
+  else newTr.insertAdjacentHTML('beforeend','<td class="num amt">0.00</td>');
+  if(ctl) newTr.appendChild(ctl.cloneNode(true));
+  else newTr.insertAdjacentHTML('beforeend','<td class="c-ctl"><button class="del" title="Remove">&times;</button></td>');
+  return newTr;
 }
 
 /* ---- per-invoice setup ---- */
@@ -1586,11 +1587,12 @@ function _applySnap(id,snap){
   });
   (snap.fields||[]).forEach(function(html,i){ if(fields[i]) fields[i].innerHTML=html; });
   if(body&&snap.rows&&snap.rows.length){
+    var customCount=head?head.querySelectorAll('th.c-custom').length:0;
     body.innerHTML='';
     snap.rows.forEach(function(rowHtml){
-      var tr=document.createElement('tr'); tr.innerHTML=rowHtml; body.appendChild(tr);
+      var tr=document.createElement('tr'); tr.innerHTML=rowHtml;
+      body.appendChild(_normaliseRow(tr,customCount));
     });
-    _stripLegacyCells(body,head);
   }
   if(_inv[id]) _inv[id].mode=snap.mode||'USD';
   _setMode(id,snap.mode||'USD');
