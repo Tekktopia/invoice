@@ -179,8 +179,9 @@
   }
   .inv-wrapper .page>table{table-layout:fixed; min-width:0;}
   thead th{position:relative;}
-  tbody td{padding:9px 6px; border-bottom:.7px solid var(--line); vertical-align:top; word-break:break-word; overflow-wrap:anywhere;}
-  .c-sn{width:34px;} .c-qty{width:56px;} .c-unit{width:118px;} .c-amt{width:126px;}
+  tbody td{padding:9px 6px; border-bottom:.7px solid var(--line); vertical-align:top;}
+  td.desc{word-break:break-word; overflow-wrap:anywhere;}
+  .c-sn{width:34px;} .c-qty{width:56px;} .c-unit{width:118px; min-width:90px;} .c-amt{width:126px; min-width:90px;}
   .c-ctl{width:26px; border:none !important; padding:0 !important;}
   .c-add-col{width:28px; border:none !important; padding:1px !important; text-align:center;}
   th.c-custom{min-width:60px; font-size:10px; letter-spacing:.09em; font-weight:700;}
@@ -1205,7 +1206,8 @@ function _attachResizeHandle(handle,th,id){
     e.preventDefault(); e.stopPropagation();
     handle.classList.add('resizing');
     var startX=e.pageX, startW=th.getBoundingClientRect().width;
-    function onMove(ev){ th.style.width=Math.max(30,Math.round(startW+ev.pageX-startX))+'px'; }
+    var minW=Math.max(30,parseInt(window.getComputedStyle(th).minWidth)||0);
+    function onMove(ev){ th.style.width=Math.max(minW,Math.round(startW+ev.pageX-startX))+'px'; }
     function onUp(){
       handle.classList.remove('resizing');
       document.removeEventListener('mousemove',onMove);
@@ -1307,7 +1309,8 @@ function _stripLegacyHead(headEl){
     if(t==='OCCURRENCE'||t==='OCCURENCE'||t==='TYPE') th.remove();
   });
 }
-function _stripLegacyCells(bodyEl){
+function _stripLegacyCells(bodyEl,headEl){
+  /* class-based removal for known legacy formats */
   bodyEl.querySelectorAll('td.type-cell,td.occ-cell').forEach(function(td){ td.remove(); });
   /* position-based: remove any td between .desc and .qty that isn't a custom-cell */
   bodyEl.querySelectorAll('tr').forEach(function(tr){
@@ -1323,6 +1326,14 @@ function _stripLegacyCells(bodyEl){
       }
     }
   });
+  /* count-based fallback: trim extra tds that exceed what the header declares */
+  if(headEl){
+    var expected=headEl.querySelectorAll('th:not(.c-add-col)').length;
+    bodyEl.querySelectorAll('tr').forEach(function(tr){
+      var tds=Array.from(tr.querySelectorAll('td'));
+      for(var i=tds.length-1;i>=expected;i--) tds[i].remove();
+    });
+  }
 }
 
 /* ---- per-invoice setup ---- */
@@ -1579,7 +1590,7 @@ function _applySnap(id,snap){
     snap.rows.forEach(function(rowHtml){
       var tr=document.createElement('tr'); tr.innerHTML=rowHtml; body.appendChild(tr);
     });
-    _stripLegacyCells(body);
+    _stripLegacyCells(body,head);
   }
   if(_inv[id]) _inv[id].mode=snap.mode||'USD';
   _setMode(id,snap.mode||'USD');
