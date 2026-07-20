@@ -177,11 +177,15 @@
     font-size:10px; letter-spacing:.09em; text-align:left; font-weight:700;
     border-top:1.4px solid var(--line2); border-bottom:1px solid var(--line2); padding:7px 6px;
   }
-  tbody td{padding:9px 6px; border-bottom:.7px solid var(--line); vertical-align:top;}
+  .inv-wrapper .page>table{table-layout:fixed; min-width:0;}
+  thead th{position:relative;}
+  tbody td{padding:9px 6px; border-bottom:.7px solid var(--line); vertical-align:top; word-break:break-word; overflow-wrap:anywhere;}
   .c-sn{width:34px;} .c-qty{width:56px;} .c-unit{width:118px;} .c-amt{width:126px;}
   .c-ctl{width:26px; border:none !important; padding:0 !important;}
   .c-add-col{width:28px; border:none !important; padding:1px !important; text-align:center;}
-  th.c-custom{min-width:60px; font-size:10px; letter-spacing:.09em; font-weight:700; position:relative;}
+  th.c-custom{min-width:60px; font-size:10px; letter-spacing:.09em; font-weight:700;}
+  .col-resize-handle{position:absolute; right:-3px; top:0; bottom:0; width:6px; cursor:col-resize; user-select:none; z-index:2;}
+  .col-resize-handle:hover,.col-resize-handle.resizing{background:rgba(50,100,255,.18);}
   td.custom-cell{word-break:break-word; overflow-wrap:anywhere;}
   .add-col-btn{
     border:none; background:none; font-size:16px; font-weight:700; color:var(--gray);
@@ -517,7 +521,7 @@
   @page{size:A4; margin:0;}
   @media print{
     body{background:#fff;}
-    .toolbar,.addrow,.c-ctl,.del,.pg-brk,.c-add-col,.del-col-btn,
+    .toolbar,.addrow,.c-ctl,.del,.pg-brk,.c-add-col,.del-col-btn,.col-resize-handle,
     #selScreen,#modalBg,#confirmBg,#calPop,#toast,#siteFooter{display:none !important;}
     .inv-date-trigger::after,.inv-date-trigger:hover,.inv-date-trigger:focus{
       content:none; box-shadow:none !important; background:transparent !important;
@@ -1195,6 +1199,35 @@ function _findCard(id){
   return null;
 }
 
+/* ---- column resize ---- */
+function _attachResizeHandle(handle,th,id){
+  handle.addEventListener('mousedown',function(e){
+    e.preventDefault(); e.stopPropagation();
+    handle.classList.add('resizing');
+    var startX=e.pageX, startW=th.getBoundingClientRect().width;
+    function onMove(ev){ th.style.width=Math.max(30,Math.round(startW+ev.pageX-startX))+'px'; }
+    function onUp(){
+      handle.classList.remove('resizing');
+      document.removeEventListener('mousemove',onMove);
+      document.removeEventListener('mouseup',onUp);
+      clearTimeout(_saveTimers[id]);
+      _saveTimers[id]=setTimeout(function(){ _saveInvoice(id); },3000);
+    }
+    document.addEventListener('mousemove',onMove);
+    document.addEventListener('mouseup',onUp);
+  });
+}
+function _initResizeHandles(id){
+  var head=document.getElementById('inv-'+id+'-head');
+  if(!head) return;
+  head.querySelectorAll('.col-resize-handle').forEach(function(h){ h.remove(); });
+  head.querySelectorAll('th:not(.c-add-col):not(.c-ctl)').forEach(function(th){
+    var rh=document.createElement('div'); rh.className='col-resize-handle';
+    _attachResizeHandle(rh,th,id);
+    th.appendChild(rh);
+  });
+}
+
 /* ---- custom columns ---- */
 function _addColBtn(id){
   var head=document.getElementById('inv-'+id+'-head');
@@ -1222,6 +1255,8 @@ function _addColumn(id){
   delBtn.className='del-col-btn'; delBtn.title='Remove column'; delBtn.innerHTML='&times;';
   (function(t){ delBtn.addEventListener('click',function(e){ e.stopPropagation(); _deleteColumn(t,id); }); })(newTh);
   newTh.appendChild(delBtn);
+  var rh=document.createElement('div'); rh.className='col-resize-handle';
+  _attachResizeHandle(rh,newTh,id); newTh.appendChild(rh);
   if(qtyTh) tr.insertBefore(newTh,qtyTh);
   else if(addTh) tr.insertBefore(newTh,addTh);
   else tr.appendChild(newTh);
@@ -1401,6 +1436,7 @@ function _setupInvoice(id){
   _setupDateFields(id);
   _recalcInv(id);
   _addColBtn(id);
+  _initResizeHandles(id);
 }
 
 /* ---- page-break badges ---- */
@@ -1505,7 +1541,7 @@ function _snapshotInv(id){
   var headHtml='';
   if(head){
     var clone=head.cloneNode(true);
-    clone.querySelectorAll('.c-add-col,.del-col-btn').forEach(function(el){ el.remove(); });
+    clone.querySelectorAll('.c-add-col,.del-col-btn,.col-resize-handle').forEach(function(el){ el.remove(); });
     headHtml=clone.querySelector('tr').innerHTML;
   }
   return {v:3,fields:fields,rows:rows,mode:(_inv[id]&&_inv[id].mode)||'USD',head:headHtml};
@@ -1530,6 +1566,7 @@ function _applySnap(id,snap){
       th.appendChild(delBtn);
     });
     _addColBtn(id);
+    _initResizeHandles(id);
   }
 
   var fields=[];
